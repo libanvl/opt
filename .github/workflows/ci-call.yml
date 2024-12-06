@@ -13,11 +13,6 @@ on:
         type: string
         default: 8.x.x
         required: false
-      dotnet-include-prerelease:
-        description: Whether to include dotnet prerelease version
-        type: boolean
-        default: true
-        required: false
       dotnet-verbosity:
         description: The log verbosity of dotnet commands
         type: string
@@ -52,7 +47,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
-          include-prerelease: ${{ inputs.dotnet-include-prerelease }}
       - name: Nerdbank.GitVersioning
         uses: dotnet/nbgv@v0.4.2
         with:

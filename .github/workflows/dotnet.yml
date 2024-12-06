@@ -25,20 +25,17 @@ jobs:
     with:
       runs-on: ubuntu-latest
       dotnet-version: 8.x.x
-      dotnet-include-prerelease: false
       package: true
   build-windows:
     uses: ./.github/workflows/ci-call.yml
     with:
       runs-on: ubuntu-latest
       dotnet-version: 8.x.x
-      dotnet-include-prerelease: false
   build-macos:
     uses: ./.github/workflows/ci-call.yml
     with:
       runs-on: ubuntu-latest
       dotnet-version: 8.x.x
-      dotnet-include-prerelease: false
 
   private-release:
     needs: build-ubuntu
@@ -46,11 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: nupkg
+          path: ./nupkg
       - name: Push to GitHub Feed
-        run: dotnet nuget push ./nupkg/*.nupkg --source ${GITHUB_FEED} --skip-duplicate --api-key ${GITHUB_TOKEN}
+        run: dotnet nuget push ./nupkg/*.nupkg --source ${{ env.GITHUB_FEED }} --skip-duplicate --api-key ${{ env.GITHUB_TOKEN }}
 
   draft-public-release:
     needs: build-ubuntu

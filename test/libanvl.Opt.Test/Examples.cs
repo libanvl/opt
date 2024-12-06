@@ -1,4 +1,4 @@
-﻿using System;
+﻿using libanvl.Exceptions;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -10,28 +10,26 @@ public class Examples
     [Fact]
     public void WrapOpt()
     {
-        static Opt<T> GetOpt<T>(T? person) => person.WrapOpt();
-
         var rick = new Person("Rick", "Sanchez", Org.Alpha);
         var morty = new Person("Mortimer", "Smith", Org.Gamma);
 
-        var optPerson = GetOpt<Person>(rick);
+        Opt<Person> optPerson = Opt.From(rick);
         Assert.True(optPerson.IsSome);
         var person = optPerson.Unwrap();
 
-        if (optPerson is Opt<Person>.Some somePerson)
+        if (optPerson.IsSome)
         {
-            Assert.Same(person, somePerson.Value);
+            Assert.Same(person, optPerson.Unwrap());
         }
 
-        Assert.Same(person, optPerson.SomeOrDefault(morty));
-        Assert.NotNull(optPerson.SomeOrNull());
+        Assert.Same(person, optPerson.SomeOr(morty));
+        Assert.NotNull(optPerson.SomeOrDefault());
 
-        optPerson = GetOpt<Person>(null);
+        optPerson = Opt.From<Person>(null);
         Assert.True(optPerson.IsNone);
-        Assert.Throws<InvalidOperationException>(optPerson.Unwrap);
-        Assert.Same(morty, optPerson.SomeOrDefault(morty));
-        Assert.Null(optPerson.SomeOrNull());
+        Assert.Throws<OptException>(optPerson.Unwrap);
+        Assert.Same(morty, optPerson.SomeOr(morty));
+        Assert.Null(optPerson.SomeOrDefault());
 
         static bool AcceptOpt(Opt<Person> op) => op.IsSome;
 
@@ -44,7 +42,7 @@ public class Examples
         Assert.True(result);
 
         // extension function factory
-        result = AcceptOpt(rick.WrapOpt());
+        result = AcceptOpt(rick);
         Assert.True(result);
 
         // This will not work:
@@ -58,7 +56,7 @@ public class Examples
     [Fact]
     public void WrapOptAndProject()
     {
-        static Opt<DirectoryInfo> GetOptDirectoryInfo(string? path) => path.WrapOpt(p => new DirectoryInfo(p));
+        static Opt<DirectoryInfo> GetOptDirectoryInfo(string? path) => Opt.From(path is null ? null : new DirectoryInfo(path));
 
         Opt<DirectoryInfo> optDirectoryInfo = GetOptDirectoryInfo(@"C:\Users");
         Assert.True(optDirectoryInfo.IsSome);
@@ -73,7 +71,7 @@ public class Examples
         var rick = new Person("Rick", "Sanchez", Org.Alpha);
         var morty = new Person("Mortimer", "Smith", Org.Gamma);
 
-        var optBook = new Book("How to drive a space car", rick, morty).WrapOpt();
+        var optBook = Opt.From(new Book("How to drive a space car", rick, morty));
 
         Opt<string> optEditorLastName = optBook.Select(b => b.Editor.LastName);
         Assert.Equal(morty.LastName, optEditorLastName.Unwrap());
@@ -94,15 +92,15 @@ public class Examples
         var book2 = new Book("Horse Surgeon: A Life", beth, morty);
 
         var books = new List<Book> { book1, book2 };
-        var library = new Library(books.WrapOpt<IEnumerable<Book>>(), rick);
+        var library = new Library(books, rick);
 
-        foreach (Book b in library.Books)
+        foreach (Book b in library.Books.Unwrap())
         {
             Assert.Same(b.Editor, morty);
         }
 
         library = new Library(Opt<IEnumerable<Book>>.None, Opt<Person>.None);
-        
+
         // Books will be an empty collection
         foreach (Book b in library.Books)
         {
@@ -119,9 +117,6 @@ public class Examples
 
         Assert.Same(optJerry.Unwrap(), optPerson.Unwrap());
 
-        // variance is supported through the IOpt<T> interface
-        // but functionality is limited and IOpt<T> cannot be returned
-        // from a function.
-        IOpt<Person> optVariantPerson = optJerry;
+        Opt<Person> optVariantPerson = optJerry.Cast<Person>();
     }
 }

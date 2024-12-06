@@ -1,4 +1,5 @@
-﻿using System;
+﻿using libanvl.Exceptions;
+using System;
 using Xunit;
 
 namespace libanvl.Test;
@@ -11,7 +12,7 @@ public class OptTests
         var x = Opt<object>.None;
         var y = Opt<object>.None;
 
-        Assert.Same(x, y);
+        Assert.Equal(x, y);
     }
 
     private class Base { }
@@ -21,7 +22,7 @@ public class OptTests
     [Fact]
     public void Failed_Cast_IsNone()
     {
-        var a = new NotDerived().WrapOpt();
+        var a = Opt.From(new NotDerived());
         var x = a.Cast<Base>();
         Assert.True(x.IsNone);
         Assert.False(x.IsSome);
@@ -30,18 +31,17 @@ public class OptTests
     [Fact]
     public void Cast_IsSome()
     {
-        var a = new Derived().WrapOpt();
+        var a = Opt.From(new Derived());
         var x = a.Cast<Base>();
         Assert.True(x.IsSome);
         Assert.False(x.IsNone);
-        Assert.True(x.ValueType == typeof(Base));
     }
 
     [Fact]
     public void Unwrap_ThrowsForNone()
     {
         var x = Opt<object>.None;
-        Assert.Throws<InvalidOperationException>(() => x.Unwrap());
+        Assert.Throws<OptException>(() => x.Unwrap());
     }
 
     [Fact]

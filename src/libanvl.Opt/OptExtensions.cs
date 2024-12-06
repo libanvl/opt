@@ -1,36 +1,52 @@
 ﻿namespace libanvl;
 
 /// <summary>
-/// Extension methods for working with <see cref="Opt{T}"/>
+/// Provides extension methods for working with <see cref="Opt{T}"/> instances.
 /// </summary>
 public static class OptExtensions
 {
     /// <summary>
-    /// Returns the value if Some, or the <paramref name="default"/> if None.
+    /// Converts an enumerable of nullable reference types to an enumerable of <see cref="Opt{T}"/> instances.
     /// </summary>
-    public static T SomeOrDefault<T>(this IOpt<T> opt, T @default) => opt.IsSome ? opt.Unwrap() : @default;
+    /// <typeparam name="T">The type of the elements in the source enumerable.</typeparam>
+    /// <param name="source">The source enumerable of nullable reference types.</param>
+    /// <returns>An enumerable of <see cref="Opt{T}"/> instances.</returns>
+    public static IEnumerable<Opt<T>> AsOpts<T>(this IEnumerable<T?> source) where T : class
+    {
+        foreach (var item in source)
+        {
+            yield return item is null ? Opt<T>.None : Opt<T>.Some(item);
+        }
+    }
 
     /// <summary>
-    /// Returns the string value if Some, or the empty string if None.
+    /// Converts an enumerable of nullable value types to an enumerable of <see cref="Opt{T}"/> instances.
     /// </summary>
-    public static string SomeOrEmpty(this IOpt<string> opt) => opt.SomeOrDefault(string.Empty);
+    /// <typeparam name="T">The type of the elements in the source enumerable.</typeparam>
+    /// <param name="source">The source enumerable of nullable value types.</param>
+    /// <returns>An enumerable of <see cref="Opt{T}"/> instances.</returns>
+    public static IEnumerable<Opt<T>> AsOpts<T>(this IEnumerable<T?> source) where T : struct
+    {
+        foreach (var item in source)
+        {
+            yield return item.HasValue ? Opt<T>.Some(item.Value) : Opt<T>.None;
+        }
+    }
 
     /// <summary>
-    /// Returns the enumerable value if Some, or the empty enumerable if None.
+    /// Converts an enumerable of <see cref="Opt{T}"/> instances to an enumerable of the underlying values.
     /// </summary>
-    /// <typeparam name="T">The underlying type of the enumerable</typeparam>
-    public static IEnumerable<T> SomeOrEmpty<T>(this IOpt<IEnumerable<T>> opt) => opt.SomeOrDefault(Enumerable.Empty<T>());
-
-    /// <summary>
-    /// For instance types, returns the value if Some, or null if None.
-    /// </summary>
-    /// <remarks>Should only be used to intentionally break out of the nullable context.</remarks>
-    /// <typeparam name="T">The underlying instance type</typeparam>
-    public static T? SomeOrNull<T>(this IOpt<T> opt) where T : class => opt.SomeOrDefault(null);
-
-    /// <summary>
-    /// Returns an iterator that iterates over the optional collection.
-    /// </summary>
-    /// <typeparam name="T">The underlying type of the enumerable</typeparam>
-    public static IEnumerator<T> GetEnumerator<T>(this IOpt<IEnumerable<T>> opt) => opt.SomeOrEmpty().GetEnumerator();
+    /// <typeparam name="T">The type of the elements in the source enumerable.</typeparam>
+    /// <param name="source">The source enumerable of <see cref="Opt{T}"/> instances.</param>
+    /// <returns>An enumerable of the underlying values.</returns>
+    public static IEnumerable<T> AsEnumerable<T>(this IEnumerable<Opt<T>> source) where T : notnull
+    {
+        foreach (var item in source)
+        {
+            if (item.IsSome)
+            {
+                yield return item.Unwrap();
+            }
+        }
+    }
 }

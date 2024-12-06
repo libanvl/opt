@@ -11,11 +11,6 @@ on:
         description: The dotnet version specifier
         default: 8.x.x
         required: false
-      dotnet-include-prerelease:
-        type: boolean
-        description: Include dotnet prerelease versions
-        default: true
-        required: false
       dotnet-verbosity:
         type: string
         description: Verbosity of dotnet commands
@@ -49,7 +44,6 @@ jobs:
     with:
       runs-on: ${{ github.event.inputs.runs-on }}
       dotnet-version: ${{ github.event.inputs.dotnet-version }}
-      dotnet-include-prerelease: ${{ github.event.inputs.dotnet-include-prerelease == 'true' }}
       dotnet-verbosity: ${{ github.event.inputs.dotnet-verbosity }}
       configuration:  ${{ github.event.inputs.configuration }}
       package: ${{ github.event.inputs.package == 'true' }}
