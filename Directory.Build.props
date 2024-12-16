@@ -21,7 +21,7 @@
 
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
-    <PackageProjectUrl>https://github.com/libanvl/uuid</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/libanvl/opt</PackageProjectUrl>
     <Authors>libanvl</Authors>
     <Product>libanvl.opt</Product>
     <Description>A null-free optional value library for .NET.</Description>
