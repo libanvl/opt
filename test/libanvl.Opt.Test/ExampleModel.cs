@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace libanvl.Test;
+namespace libanvl.opt.test;
 
 internal enum Org
 {

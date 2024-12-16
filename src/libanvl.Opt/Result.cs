@@ -1,10 +1,20 @@
-﻿namespace libanvl;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+
+namespace libanvl;
 
 /// <summary>
 /// Provides static methods for creating and working with <see cref="Result{TResult, TError}"/> instances.
 /// </summary>
 public static class Result
 {
+    /// <summary>
+    /// A delegate representing a validator function that returns an error value if the validation fails.
+    /// </summary>
+    public delegate bool Validator<TValue, TError>(in TValue value, [NotNullWhen(false)] out TError? error)
+        where TValue : notnull
+        where TError : notnull;
+
     /// <summary>
     /// Creates a new <see cref="Result{TResult, TError}"/> representing a success.
     /// </summary>
@@ -59,6 +69,78 @@ public static class Result
     /// <returns>A <see cref="Result{TResult, Exception}"/> representing an error.</returns>
     public static Result<TResult, Exception> Err<TResult>(Exception error)
         where TResult : notnull => new(error);
+
+    /// <summary>
+    /// Executes the specified function and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public static Result<TResult, Exception> Try<TResult>(Func<TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func());
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided argument and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TArg">The type of the argument.</typeparam>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="arg">The argument to pass to the function.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public static Result<TResult, Exception> Try<TArg, TResult>(TArg arg, Func<TArg, TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func(arg));
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Validates the specified value using the provided validators.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the value to validate.</typeparam>
+    /// <typeparam name="TError">The type of the error value.</typeparam>
+    /// <param name="value">The value to validate.</param>
+    /// <param name="validators">The validators to use for validation.</param>
+    /// <returns>
+    /// A <see cref="Result{TResult, TError}"/> representing the outcome of the validation.
+    /// If validation succeeds, the result is a success containing the value.
+    /// If validation fails, the result is an error containing the validation errors.
+    /// </returns>
+    public static Result<TResult, ImmutableArray<TError>> Validate<TResult, TError>(TResult value, params Validator<TResult, TError>[] validators)
+        where TResult : notnull
+        where TError : notnull
+    {
+        if (validators.Length == 0)
+            return Ok<TResult, ImmutableArray<TError>>(value);
+
+        var errors = ImmutableArray.CreateBuilder<TError>(initialCapacity: validators.Length);
+        foreach (var validator in validators)
+        {
+            if (!validator(value, out TError? error))
+                errors.Add(error);
+        }
+
+        if (errors.Count > 0)
+            return Err<TResult, ImmutableArray<TError>>(errors.ToImmutable());
+
+        return Ok<TResult, ImmutableArray<TError>>(value);
+    }
 }
 
 /// <summary>

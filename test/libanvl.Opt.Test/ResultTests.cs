@@ -1,7 +1,6 @@
-using System;
 using Xunit;
 
-namespace libanvl.Test;
+namespace libanvl.opt.test;
 
 public class ResultTests
 {
@@ -15,12 +14,75 @@ public class ResultTests
     }
 
     [Fact]
-    public void Err_Result_Should_Be_Error()
+    public void Try_Should_Return_Ok_If_Function_Succeeds()
     {
-        var result = new Result<int, string>("error");
+        var result = Result.Try(() => 42);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void Try_Should_Return_Err_If_Function_Throws()
+    {
+        var result = Result.Try<int>(() => throw new InvalidOperationException("error"));
         Assert.False(result.IsOk);
         Assert.True(result.IsErr);
         Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public void Try_With_Arg_Should_Return_Ok_If_Function_Succeeds()
+    {
+        var result = Result.Try(42, arg => arg.ToString());
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal("42", result.Unwrap());
+    }
+
+    [Fact]
+    public void Try_With_Arg_Should_Return_Err_If_Function_Throws()
+    {
+        var result = Result.Try<int, string>(42, arg => throw new InvalidOperationException("error"));
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public void Validate_Should_Return_Ok_If_All_Validators_Pass()
+    {
+        var result = Result.Validate<int, string>(42, Validator);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal(42, result.Unwrap());
+
+        static bool Validator(in int value, out string error)
+        {
+            error = default!;
+            return true;
+        }
+    }
+
+    [Fact]
+    public void Validate_Should_Return_Err_If_Any_Validator_Fails()
+    {
+        var result = Result.Validate<int, string>(42, ValidatorOK, ValidatorError);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.Error.Unwrap()[0]);
+
+        static bool ValidatorOK(in int value, out string error)
+        {
+            error = default!;
+            return true;
+        }
+
+        static bool ValidatorError(in int value, out string error)
+        {
+            error = "error";
+            return false;
+        }
     }
 
     [Fact]

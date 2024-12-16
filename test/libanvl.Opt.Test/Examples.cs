@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
-namespace libanvl.Test;
+namespace libanvl.opt.test;
 
 public class Examples
 {
@@ -13,14 +13,12 @@ public class Examples
         var rick = new Person("Rick", "Sanchez", Org.Alpha);
         var morty = new Person("Mortimer", "Smith", Org.Gamma);
 
-        Opt<Person> optPerson = Opt.From(rick);
+        var optPerson = Opt.From(rick);
         Assert.True(optPerson.IsSome);
         var person = optPerson.Unwrap();
 
         if (optPerson.IsSome)
-        {
             Assert.Same(person, optPerson.Unwrap());
-        }
 
         Assert.Same(person, optPerson.SomeOr(morty));
         Assert.NotNull(optPerson.SomeOrDefault());

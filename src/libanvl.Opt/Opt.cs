@@ -105,25 +105,55 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     /// <inheritdoc/>
     public static bool operator !=(Opt<T> left, Opt<T> right) => !left.Equals(right);
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Determines whether the option has a value.
+    /// </summary>
+    /// <param name="option">The option to check.</param>
+    /// <returns>True if the option has a value, otherwise false.</returns>
     public static bool operator true(Opt<T> option) => option.IsSome;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Determines whether the option does not have a value.
+    /// </summary>
+    /// <param name="option">The option to check.</param>
+    /// <returns>True if the option does not have a value, otherwise false.</returns>
     public static bool operator false(Opt<T> option) => option.IsNone;
 
-    /// <inheritdoc/>
-    public static bool operator |(Opt<T> left, Opt<T> right) => left.IsSome || right.IsSome;
+    /// <summary>
+    /// Returns the first option if it has a value, otherwise returns the second option.
+    /// </summary>
+    /// <param name="left">The first option.</param>
+    /// <param name="right">The second option.</param>
+    /// <returns>The first option if it has a value, otherwise the second option.</returns>
+    public static Opt<T> operator |(Opt<T> left, Opt<T> right) => left.IsSome ? left : right;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Returns the value if present, otherwise returns the specified default value.
+    /// </summary>
+    /// <param name="option">The option to check for a value.</param>
+    /// <param name="defaultValue">The default value to return if the option does not have a value.</param>
+    /// <returns>The value if present, otherwise the specified default value.</returns>
     public static T operator |(Opt<T> option, T defaultValue) => option.SomeOr(defaultValue);
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Implicitly converts a nullable value to an option.
+    /// </summary>
+    /// <param name="value">The nullable value to convert.</param>
+    /// <returns>An option containing the value if not null, otherwise none.</returns>
     public static implicit operator Opt<T>(T? value) => value is null ? None : Some(value);
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Implicitly converts an option to a nullable value.
+    /// </summary>
+    /// <param name="option">The option to convert.</param>
+    /// <returns>The value if present, otherwise null.</returns>
     public static implicit operator T?(Opt<T> option) => option.IsSome ? option.Unwrap() : default;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Implicitly converts a nested option to a flattened option.
+    /// </summary>
+    /// <param name="option">The nested option to flatten.</param>
+    /// <returns>The flattened option.</returns>
     public static implicit operator Opt<T>(Opt<Opt<T>> option) => Opt.Flatten(option);
 
     /// <summary>

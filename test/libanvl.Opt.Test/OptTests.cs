@@ -2,7 +2,7 @@
 using System;
 using Xunit;
 
-namespace libanvl.Test;
+namespace libanvl.opt.test;
 
 public class OptTests
 {
