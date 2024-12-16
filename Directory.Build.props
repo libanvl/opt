@@ -22,9 +22,10 @@
   <PropertyGroup>
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
     <PackageProjectUrl>https://github.com/libanvl/uuid</PackageProjectUrl>
-    <Company>[COMPANY]</Company>
-    <Authors>The contributors of the [PROJECT] project.</Authors>
-    <Copyright>© The contributors of the [PROJECT] project. All rights reserved.</Copyright>
+    <Authors>libanvl</Authors>
+    <Product>libanvl.opt</Product>
+    <Description>A null-free optional value library for .NET.</Description>
+    <Copyright>© The contributors of the libanvl.opt project. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

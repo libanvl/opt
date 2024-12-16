@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Immutable;
 using Xunit;
 
-namespace libanvl.Test;
+namespace libanvl.opt.test;
 
 public class ResultTests
 {
@@ -54,7 +52,7 @@ public class ResultTests
     [Fact]
     public void Validate_Should_Return_Ok_If_All_Validators_Pass()
     {
-        Result<int, ImmutableArray<string>> result = Result.Validate<int, string>(42, Validator);
+        var result = Result.Validate<int, string>(42, Validator);
         Assert.True(result.IsOk);
         Assert.False(result.IsErr);
         Assert.Equal(42, result.Unwrap());
@@ -69,7 +67,7 @@ public class ResultTests
     [Fact]
     public void Validate_Should_Return_Err_If_Any_Validator_Fails()
     {
-        Result<int, ImmutableArray<string>> result = Result.Validate<int, string>(42, ValidatorOK, ValidatorError);
+        var result = Result.Validate<int, string>(42, ValidatorOK, ValidatorError);
         Assert.False(result.IsOk);
         Assert.True(result.IsErr);
         Assert.Equal("error", result.Error.Unwrap()[0]);
