@@ -261,4 +261,143 @@ public class ResultTests
         string error = result!;
         Assert.Equal(default(string), error);
     }
+
+    [Fact]
+    public unsafe void Validate_Delegate_Should_Return_Ok_If_All_Validators_Pass()
+    {
+        delegate*<int, out string, bool> validator = &Validator;
+        var result = Result.Validate<int, string>(42, validator);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal(42, result.Unwrap());
+
+        static bool Validator(int value, out string error)
+        {
+            error = default!;
+            return true;
+        }
+    }
+
+    [Fact]
+    public unsafe void Validate_Delegate_Should_Return_Err_If_Any_Validator_Fails()
+    {
+        delegate*<int, out string, bool> validatorOK = &ValidatorOK;
+        delegate*<int, out string, bool> validatorError = &ValidatorError;
+        var result = Result.Validate<int, string>(42, validatorOK, validatorError);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.Error.Unwrap()[0]);
+
+        static bool ValidatorOK(int value, out string error)
+        {
+            error = default!;
+            return true;
+        }
+
+        static bool ValidatorError(int value, out string error)
+        {
+            error = "error";
+            return false;
+        }
+    }
+
+    [Fact]
+    public unsafe void Try_With_Arg_Delegate_Should_Return_Err_If_Function_Throws()
+    {
+        delegate*<int, string> func = &ThrowExceptionWithArg;
+        var result = Result.Try(42, func);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Two_Args_Delegate_Should_Return_Ok_If_Function_Succeeds()
+    {
+        delegate*<int, int, string> func = &TwoIntsToString;
+        var result = Result.Try(42, 24, func);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal("42, 24", result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Two_Args_Delegate_Should_Return_Err_If_Function_Throws()
+    {
+        delegate*<int, int, string> func = &ThrowExceptionWithTwoArgs;
+        var result = Result.Try(42, 24, func);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Three_Args_Delegate_Should_Return_Ok_If_Function_Succeeds()
+    {
+        delegate*<int, int, int, string> func = &ThreeIntsToString;
+        var result = Result.Try(42, 24, 12, func);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal("42, 24, 12", result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Three_Args_Delegate_Should_Return_Err_If_Function_Throws()
+    {
+        delegate*<int, int, int, string> func = &ThrowExceptionWithThreeArgs;
+        var result = Result.Try(42, 24, 12, func);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Four_Args_Delegate_Should_Return_Ok_If_Function_Succeeds()
+    {
+        delegate*<int, int, int, int, string> func = &FourIntsToString;
+        var result = Result.Try(42, 24, 12, 6, func);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal("42, 24, 12, 6", result.Unwrap());
+    }
+
+    [Fact]
+    public unsafe void Try_With_Four_Args_Delegate_Should_Return_Err_If_Function_Throws()
+    {
+        delegate*<int, int, int, int, string> func = &ThrowExceptionWithFourArgs;
+        var result = Result.Try(42, 24, 12, 6, func);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    private static string IntToString(int value) => value.ToString();
+
+    private static string ThrowExceptionWithArg(int value) => throw new InvalidOperationException("error");
+
+    private static string TwoIntsToString(int value1, int value2) => $"{value1}, {value2}";
+
+    private static string ThrowExceptionWithTwoArgs(int value1, int value2) => throw new InvalidOperationException("error");
+
+    private static string ThreeIntsToString(int value1, int value2, int value3) => $"{value1}, {value2}, {value3}";
+
+    private static string ThrowExceptionWithThreeArgs(int value1, int value2, int value3) => throw new InvalidOperationException("error");
+
+    private static string FourIntsToString(int value1, int value2, int value3, int value4) => $"{value1}, {value2}, {value3}, {value4}";
+
+    private static string ThrowExceptionWithFourArgs(int value1, int value2, int value3, int value4) => throw new InvalidOperationException("error");
+
+    [Fact]
+    public unsafe void Try_Delegate_Should_Return_Err_If_Function_Throws()
+    {
+        delegate*<int> func = &ThrowException;
+        var result = Result.Try(func);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    private static int Return42() => 42;
+
+    private static int ThrowException() => throw new InvalidOperationException("error");
 }
