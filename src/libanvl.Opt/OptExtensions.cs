@@ -15,7 +15,7 @@ public static class OptExtensions
     {
         foreach (var item in source)
         {
-            yield return item is null ? Opt<T>.None : Opt<T>.Some(item);
+            yield return item is null ? Opt<T>.None : new(item);
         }
     }
 
@@ -29,7 +29,7 @@ public static class OptExtensions
     {
         foreach (var item in source)
         {
-            yield return item.HasValue ? Opt<T>.Some(item.Value) : Opt<T>.None;
+            yield return item.HasValue ? new(item.Value) : Opt<T>.None;
         }
     }
 

@@ -1,6 +1,5 @@
 ﻿using libanvl.Exceptions;
 using System.Collections;
-using System.Runtime.CompilerServices;
 
 namespace libanvl;
 
@@ -22,7 +21,7 @@ public static class Opt
     /// <typeparam name="T">The type of the value.</typeparam>
     /// <param name="value">The value to wrap.</param>
     /// <returns>An <see cref="Opt{T}"/> containing the value.</returns>
-    public static Opt<T> Some<T>(T value) where T : notnull => Opt<T>.Some(value);
+    public static Opt<T> Some<T>(T value) where T : notnull => new(value);
 
     /// <summary>
     /// Creates an <see cref="Opt{T}"/> from a nullable value.
@@ -30,7 +29,7 @@ public static class Opt
     /// <typeparam name="T">The type of the value.</typeparam>
     /// <param name="value">The nullable value to wrap.</param>
     /// <returns>An <see cref="Opt{T}"/> containing the value if not null, otherwise <see cref="Opt{T}.None"/>.</returns>
-    public static Opt<T> From<T>(T? value) where T : notnull => Opt<T>.From(value);
+    public static Opt<T> From<T>(T? value) where T : notnull => value is null ? Opt<T>.None : Some(value);
 
     /// <summary>
     /// Combines two options into an option containing a tuple of their values if both are present.
@@ -45,7 +44,7 @@ public static class Opt
         where U : notnull
     {
         return opt1.IsSome && opt2.IsSome
-            ? Opt<(T, U)>.Some((opt1.Unwrap(), opt2.Unwrap()))
+            ? Some((opt1.Unwrap(), opt2.Unwrap()))
             : Opt<(T, U)>.None;
     }
 
@@ -56,6 +55,31 @@ public static class Opt
     /// <returns>The flattened option.</returns>
     public static Opt<T> Flatten<T>(Opt<Opt<T>> opt)
         where T : notnull => opt.IsSome ? opt.Unwrap() : Opt<T>.None;
+
+    /// <summary>
+    /// Filters the option based on a predicate.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="opt">The option to filter.</param>
+    /// <param name="predicate">The predicate to apply.</param>
+    /// <returns>The option if the predicate is true, otherwise none.</returns>
+    public static Opt<T> Filter<T>(this Opt<T> opt, Func<T, bool> predicate) where T : notnull
+    {
+        return opt.IsSome && predicate(opt.Unwrap()) ? opt : Opt<T>.None;
+    }
+
+    /// <summary>
+    /// Transforms the option using a function that returns another option.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="opt">The option to transform.</param>
+    /// <param name="fn">The function to transform the value.</param>
+    /// <returns>The transformed option.</returns>
+    public static Opt<U> AndThen<T, U>(this Opt<T> opt, Func<T, Opt<U>> fn) where T : notnull where U : notnull
+    {
+        return opt.IsSome ? fn(opt.Unwrap()) : Opt<U>.None;
+    }
 }
 
 /// <summary>
@@ -71,33 +95,17 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
 
     private readonly T? _value;
 
-    private Opt(T value)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Opt{T}"/> struct with the specified value.
+    /// </summary>
+    /// <param name="value">The value to wrap.</param>
+    /// <exception cref="OptException">Thrown if the value is null.</exception>
+    public Opt(T value)
     {
         OptException.ThrowIfNull(value);
         _value = value;
         IsSome = true;
     }
-
-    /// <summary>
-    /// Creates an <see cref="Opt{T}"/> with a value.
-    /// </summary>
-    /// <param name="value">The value to wrap.</param>
-    /// <returns>An <see cref="Opt{T}"/> containing the value.</returns>
-    public static Opt<T> Some(T value) => new(value);
-
-    /// <summary>
-    /// Creates an <see cref="Opt{T}"/> from a nullable value.
-    /// </summary>
-    /// <param name="value">The nullable value to wrap.</param>
-    /// <returns>An <see cref="Opt{T}"/> containing the value if not null, otherwise <see cref="Opt{T}.None"/>.</returns>
-    public static Opt<T> From(T? value) => value is null ? None : Some(value);
-
-    /// <summary>
-    /// Creates an <see cref="Opt{T}"/> from another <see cref="Opt{T}"/>.
-    /// </summary>
-    /// <param name="value">The option to wrap.</param>
-    /// <returns>The same <see cref="Opt{T}"/> instance.</returns>
-    public static Opt<T> From(Opt<T> value) => value;
 
     /// <inheritdoc/>
     public static bool operator ==(Opt<T> left, Opt<T> right) => left.Equals(right);
@@ -140,7 +148,7 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     /// </summary>
     /// <param name="value">The nullable value to convert.</param>
     /// <returns>An option containing the value if not null, otherwise none.</returns>
-    public static implicit operator Opt<T>(T? value) => value is null ? None : Some(value);
+    public static implicit operator Opt<T>(T? value) => value is null ? None : new(value);
 
     /// <summary>
     /// Implicitly converts an option to a nullable value.
@@ -239,7 +247,7 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     /// <param name="fn">The function to transform the value.</param>
     /// <returns>An <see cref="Opt{U}"/> containing the transformed value or none.</returns>
     public Opt<U> Select<U>(Func<T, U> fn) where U : notnull => IsSome
-        ? Opt<U>.Some(fn(OptException.ThrowInternalErrorIfNull(_value)))
+        ? new(fn(OptException.ThrowInternalErrorIfNull(_value)))
         : Opt<U>.None;
 
     /// <summary>
@@ -248,7 +256,7 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     /// <typeparam name="U">The type to cast to.</typeparam>
     /// <returns>An <see cref="Opt{U}"/> containing the casted value or none.</returns>
     public Opt<U> Cast<U>() where U : notnull => OptException.ThrowInternalErrorIfNull(_value) is U casted
-        ? Opt<U>.Some(casted)
+        ? new(casted)
         : Opt<U>.None;
 
     /// <inheritdoc/>
