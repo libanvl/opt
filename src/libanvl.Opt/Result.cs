@@ -111,6 +111,121 @@ public static class Result
     }
 
     /// <summary>
+    /// Executes the specified function and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public unsafe static Result<TResult, Exception> Try<TResult>(delegate*<TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func());
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided argument and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TArg">The type of the argument.</typeparam>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="arg">The argument to pass to the function.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public unsafe static Result<TResult, Exception> Try<TArg, TResult>(TArg arg, delegate*<TArg, TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func(arg));
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided arguments and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of the first argument.</typeparam>
+    /// <typeparam name="TArg2">The type of the second argument.</typeparam>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="arg1">The first argument to pass to the function.</param>
+    /// <param name="arg2">The second argument to pass to the function.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public unsafe static Result<TResult, Exception> Try<TArg1, TArg2, TResult>(TArg1 arg1, TArg2 arg2, delegate*<TArg1, TArg2, TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func(arg1, arg2));
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided arguments and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of the first argument.</typeparam>
+    /// <typeparam name="TArg2">The type of the second argument.</typeparam>
+    /// <typeparam name="TArg3">The type of the third argument.</typeparam>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="arg1">The first argument to pass to the function.</param>
+    /// <param name="arg2">The second argument to pass to the function.</param>
+    /// <param name="arg3">The third argument to pass to the function.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public unsafe static Result<TResult, Exception> Try<TArg1, TArg2, TArg3, TResult>(TArg1 arg1, TArg2 arg2, TArg3 arg3, delegate*<TArg1, TArg2, TArg3, TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func(arg1, arg2, arg3));
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes the specified function with the provided arguments and returns a <see cref="Result{TResult, Exception}"/> representing the outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of the first argument.</typeparam>
+    /// <typeparam name="TArg2">The type of the second argument.</typeparam>
+    /// <typeparam name="TArg3">The type of the third argument.</typeparam>
+    /// <typeparam name="TArg4">The type of the fourth argument.</typeparam>
+    /// <typeparam name="TResult">The type of the success value.</typeparam>
+    /// <param name="arg1">The first argument to pass to the function.</param>
+    /// <param name="arg2">The second argument to pass to the function.</param>
+    /// <param name="arg3">The third argument to pass to the function.</param>
+    /// <param name="arg4">The fourth argument to pass to the function.</param>
+    /// <param name="func">The function to execute.</param>
+    /// <returns>A <see cref="Result{TResult, Exception}"/> representing the outcome of the function execution.</returns>
+    public unsafe static Result<TResult, Exception> Try<TArg1, TArg2, TArg3, TArg4, TResult>(TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, delegate*<TArg1, TArg2, TArg3, TArg4, TResult> func)
+        where TResult : notnull
+    {
+        try
+        {
+            return Ok(func(arg1, arg2, arg3, arg4));
+        }
+        catch (Exception ex)
+        {
+            return Err<TResult>(ex);
+        }
+    }
+
+    /// <summary>
     /// Validates the specified value using the provided validators.
     /// </summary>
     /// <typeparam name="TResult">The type of the value to validate.</typeparam>
@@ -123,6 +238,38 @@ public static class Result
     /// If validation fails, the result is an error containing the validation errors.
     /// </returns>
     public static Result<TResult, ImmutableArray<TError>> Validate<TResult, TError>(TResult value, params Validator<TResult, TError>[] validators)
+        where TResult : notnull
+        where TError : notnull
+    {
+        if (validators.Length == 0)
+            return Ok<TResult, ImmutableArray<TError>>(value);
+
+        var errors = ImmutableArray.CreateBuilder<TError>(initialCapacity: validators.Length);
+        foreach (var validator in validators)
+        {
+            if (!validator(value, out TError? error))
+                errors.Add(error);
+        }
+
+        if (errors.Count > 0)
+            return Err<TResult, ImmutableArray<TError>>(errors.ToImmutable());
+
+        return Ok<TResult, ImmutableArray<TError>>(value);
+    }
+
+    /// <summary>
+    /// Validates the specified value using the provided validators.
+    /// </summary>
+    /// <typeparam name="TResult">The type of the value to validate.</typeparam>
+    /// <typeparam name="TError">The type of the error value.</typeparam>
+    /// <param name="value">The value to validate.</param>
+    /// <param name="validators">The validators to use for validation.</param>
+    /// <returns>
+    /// A <see cref="Result{TResult, TError}"/> representing the outcome of the validation.
+    /// If validation succeeds, the result is a success containing the value.
+    /// If validation fails, the result is an error containing the validation errors.
+    /// </returns>
+    public unsafe static Result<TResult, ImmutableArray<TError>> Validate<TResult, TError>(TResult value, params delegate*<TResult, out TError, bool>[] validators)
         where TResult : notnull
         where TError : notnull
     {
@@ -290,7 +437,16 @@ public readonly struct Result<TResult, TError>
     /// </summary>
     /// <param name="fn">The function to invoke if the success value is not present.</param>
     /// <returns>The success value or the result of the function.</returns>
-    public TResult OkOr<T>(Func<TResult> fn) => Value.SomeOr(fn);
+    public TResult OkOr(Func<TResult> fn) => Value.SomeOr(fn);
+
+    /// <summary>
+    /// Returns the success value if present, otherwise returns the result of the specified function.
+    /// </summary>
+    /// <param name="fn">The function to invoke if the success value is not present.</param>
+    /// <returns>The success value or the result of the function.</returns>
+    public TResult OkOr(Func<TError, TResult> fn) => Value.IsSome
+        ? Value.Unwrap()
+        : fn(Error.Unwrap());
 
     /// <summary>
     /// Returns the success value if present, otherwise returns the default value of <typeparamref name="TResult"/>.
@@ -305,8 +461,22 @@ public readonly struct Result<TResult, TError>
     public static implicit operator Result<TResult, TError>(TResult value) => new(value);
 
     /// <summary>
+    /// Implicitly converts a <see cref="Result{TResult, TError}"/> to the success value if present, otherwise returns the default value of <typeparamref name="TResult"/>.
+    /// </summary>
+    /// <param name="result">The result to convert.</param>
+    /// <returns>The success value if present, otherwise the default value of <typeparamref name="TResult"/>.</returns>
+    public static implicit operator TResult?(Result<TResult, TError> result) => result.Value.SomeOrDefault();
+
+    /// <summary>
     /// Implicitly converts an error value to a <see cref="Result{TResult, TError}"/>.
     /// </summary>
     /// <param name="error">The error value.</param>
     public static implicit operator Result<TResult, TError>(TError error) => new(error);
+
+    /// <summary>
+    /// Implicitly converts a <see cref="Result{TResult, TError}"/> to the error value if present, otherwise returns the default value of <typeparamref name="TError"/>.
+    /// </summary>
+    /// <param name="result">The result to convert.</param>
+    /// <returns>The error value if present, otherwise the default value of <typeparamref name="TError"/>.</returns>
+    public static implicit operator TError?(Result<TResult, TError> result) => result.Error.SomeOrDefault();
 }
