@@ -1,6 +1,4 @@
 ﻿using libanvl.Exceptions;
-using System.Collections.Generic;
-using System.IO;
 using Xunit;
 
 namespace libanvl.opt.test;
@@ -114,7 +112,137 @@ public class Examples
         Opt<Person> optPerson = optJerry.Cast<Person>();
 
         Assert.Same(optJerry.Unwrap(), optPerson.Unwrap());
+    }
 
-        Opt<Person> optVariantPerson = optJerry.Cast<Person>();
+    [Fact]
+    public void Operator_ImplicitConversion_ToOpt()
+    {
+        Opt<int> opt = 5;
+        Assert.True(opt.IsSome);
+        Assert.Equal(5, opt.Unwrap());
+    }
+
+    [Fact]
+    public void Operator_ImplicitConversion_FromOpt()
+    {
+        Opt<int> opt = Opt.Some(5);
+        int value = opt;
+        Assert.Equal(5, value);
+    }
+
+    [Fact]
+    public void Operator_True()
+    {
+        Opt<int> opt = 5;
+        if (opt)
+        {
+            Assert.True(opt.IsSome);
+        }
+        else
+        {
+            Assert.Fail("Should not be called");
+        }
+    }
+
+    [Fact]
+    public void Operator_False()
+    {
+        Opt<int> opt = Opt<int>.None;
+        if (opt)
+        {
+            Assert.Fail("Should not be called");
+        }
+        else
+        {
+            Assert.True(opt.IsNone);
+        }
+    }
+
+    [Fact]
+    public void Operator_Or_Opt()
+    {
+        Opt<int> opt1 = Opt<int>.None;
+        Opt<int> opt2 = 5;
+        Opt<int> result = opt1 | opt2;
+        Assert.True(result.IsSome);
+        Assert.Equal(5, result.Unwrap());
+    }
+
+    [Fact]
+    public void Operator_Or_Value()
+    {
+        Opt<int> opt = Opt<int>.None;
+        int result = opt | 5;
+        Assert.Equal(5, result);
+    }
+
+    [Fact]
+    public void Result_Ok()
+    {
+        var result = Result.Ok("Success");
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal("Success", result.Unwrap());
+    }
+
+    [Fact]
+    public void Result_Err()
+    {
+        var result = Result.Err<string, string>("Error");
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+    }
+
+    [Fact]
+    public void Result_Match_Ok()
+    {
+        var result = Result.Ok("Success");
+        result.Match(
+            ok => Assert.Equal("Success", ok),
+            err => Assert.Fail("Should not be called")
+        );
+    }
+
+    [Fact]
+    public void Result_Match_Err()
+    {
+        var result = Result.Err<string, string>("Error");
+        result.Match(
+            ok => Assert.Fail("Should not be called"),
+            err => Assert.Equal("Error", err)
+        );
+    }
+
+    [Fact]
+    public void Result_OkOr()
+    {
+        var result = Result.Err<string, string>("Error");
+        var value = result.OkOr("Default");
+        Assert.Equal("Default", value);
+    }
+
+    [Fact]
+    public void Result_OkOrDefault()
+    {
+        var result = Result.Err<string, string>("Error");
+        var value = result.OkOrDefault();
+        Assert.Null(value);
+    }
+
+    [Fact]
+    public void Result_ImplicitConversion_Ok()
+    {
+        Result<string, Exception> result = "Success";
+        Assert.True(result.IsOk);
+        Assert.Equal("Success", result.Unwrap());
+    }
+
+    [Fact]
+    public void Result_ImplicitConversion_Err()
+    {
+        Result<int, string> result = "Error";
+        Assert.True(result.IsErr);
+        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
     }
 }

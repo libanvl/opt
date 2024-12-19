@@ -8,6 +8,7 @@
 A null-free optional value library for .NET.
 
 * An optional value is represented as the struct Opt&lt;T&gt;
+* A possible value or error is represented as the struct Result&lt;T, E&gt;
 
 See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to use Opt.
 
@@ -22,7 +23,7 @@ See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to u
   * Source Link enabled
 * NuGet packages from CI builds are available on the [libanvl GitHub feed](https://github.com/libanvl/opt/packages/)
 
-## Features
+## libanvl.Opt Features
 
 - [X] Immutable
 - [X] Use Opt&lt;T&gt; instead of T? for optional values 
@@ -31,43 +32,65 @@ See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to u
 - [X] SomeOrDefault() for any type
 - [X] Explicitly opt-in to exceptions with Unwrap()
 - [X] Cast inner value to compatible type with Cast&lt;U&gt;() 
-- [ ] SomeOrEmpty() for string and enumerables
 - [ ] Opts of IEnumerable&lt;T&gt; are iterable
+
+## libanvl.Result Features
+
+- [X] Create success results with Result.Ok
+- [X] Create error results with Result.Err
+- [X] Unwrap values with Unwrap, throwing if the result is an error
+- [X] Match on success or error with Match
+- [X] Convert between Opt and Result
 
 ## Examples
 
 ```csharp
 class Car
 {
-	public string Driver { get; set;}
+  public string Driver { get; set;}
 }
 
 public void AcceptOptionalValue(Opt<Car> optCar, Opt<string> optName)
 {
-	if (optCar.IsSome)
-	{
-		optCar.Unwrap().Driver = optName.SomeOr("Default Driver");
-	}
+  if (optCar.IsSome)
+  {
+    optCar.Unwrap().Driver = optName.SomeOr("Default Driver");
+  }
 
-	if (optCar.IsNone)
-	{
-		throw new Exception();
-	}
+  if (optCar.IsNone)
+  {
+    throw new Exception();
+  }
 
-	// or use Unwrap() to throw for None
+  // or use Unwrap() to throw for None
 
-	Car bcar = optCar.Unwrap();
+  Car bcar = optCar.Unwrap();
 }
 
 public void RunCarOperations()
 {
-	var acar = new Car();
-	AcceptOptionalValue(acar, "Rick");
+  var acar = new Car();
+  AcceptOptionalValue(acar, "Rick");
 
-	Car? nocar = null;
-	AcceptOptionalValue(Opt.From(nocar), Opt<string>.None)
+  Car? nocar = null;
+  AcceptOptionalValue(Opt.From(nocar), Opt<string>.None)
 
-	// use Select to project to an Opt of an inner property
-	Opt<string> driver = acar.Select(x => x.Driver);
+  // use Select to project to an Opt of an inner property
+  Opt<string> driver = acar.Select(x => x.Driver);
+}
+
+public void RunResultOperations()
+{
+  Result<Car, string> carResult = Result.Ok(new Car());
+  Result<Car, string> errorResult = Result.Err("Error");
+
+  carResult.Match(
+    Ok: car => Console.WriteLine(car.Driver),
+    Err: err => Console.WriteLine(err)
+  );
+
+  // Convert between Opt and Result
+  Opt<Car> optCar = carResult.ToOpt();
+  Result<Car, string> resultCar = optCar.ToResult("Error");
 }
 ```
