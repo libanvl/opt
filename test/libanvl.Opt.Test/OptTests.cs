@@ -1,5 +1,4 @@
 ﻿using libanvl.Exceptions;
-using System;
 using Xunit;
 
 namespace libanvl.opt.test;

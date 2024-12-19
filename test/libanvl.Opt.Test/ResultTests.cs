@@ -41,12 +41,31 @@ public class ResultTests
     }
 
     [Fact]
-    public void Try_With_Arg_Should_Return_Err_If_Function_Throws()
+    public void OkOr_Should_Return_Value_From_Function_If_Success()
     {
-        var result = Result.Try<int, string>(42, arg => throw new InvalidOperationException("error"));
-        Assert.False(result.IsOk);
-        Assert.True(result.IsErr);
-        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+        var result = new Result<int, string>(42);
+        Assert.Equal(42, result.OkOr(() => 0));
+    }
+
+    [Fact]
+    public void OkOr_Should_Return_Value_From_Function_If_Error()
+    {
+        var result = new Result<int, string>("error");
+        Assert.Equal(0, result.OkOr(() => 0));
+    }
+
+    [Fact]
+    public void OkOr_Should_Return_Value_From_Function_With_Error_If_Error()
+    {
+        var result = new Result<int, string>("error");
+        Assert.Equal(0, result.OkOr(err => 0));
+    }
+
+    [Fact]
+    public void OkOr_Should_Return_Value_From_Function_With_Error_If_Success()
+    {
+        var result = new Result<int, string>(42);
+        Assert.Equal(42, result.OkOr(err => 0));
     }
 
     [Fact]
@@ -147,5 +166,99 @@ public class ResultTests
             err => err
         );
         Assert.Equal("error", matchResult);
+    }
+    [Fact]
+    public void Err_Result_Should_Be_Error()
+    {
+        var result = new Result<int, string>("error");
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.Error.Unwrap());
+    }
+
+    [Fact]
+    public void From_Should_Create_Result_From_Opt()
+    {
+        var value = Opt.Some(42);
+        var error = Opt<string>.None;
+        var result = Result.From(value, error);
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void From_Should_Create_Result_From_Opt_Error()
+    {
+        var value = Opt<int>.None;
+        var error = Opt.Some("error");
+        var result = Result.From(value, error);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.Error.Unwrap());
+    }
+
+    [Fact]
+    public void OkOrDefault_Should_Return_Value_If_Success()
+    {
+        var result = new Result<int, string>(42);
+        Assert.Equal(42, result.OkOrDefault());
+    }
+
+    [Fact]
+    public void OkOrDefault_Should_Return_Default_If_Error()
+    {
+        var result = new Result<int, string>("error");
+        Assert.Equal(default(int), result.OkOrDefault());
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Result_Should_Create_Success()
+    {
+        Result<int, string> result = 42;
+        Assert.True(result.IsOk);
+        Assert.False(result.IsErr);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Result_Should_Create_Error()
+    {
+        Result<int, string> result = "error";
+        Assert.False(result.IsOk);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.Error.Unwrap());
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Value_Should_Return_Value_If_Success()
+    {
+        var result = new Result<int, string>(42);
+        int value = result;
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Value_Should_Return_Default_If_Error()
+    {
+        var result = new Result<int, string>("error");
+        int value = result;
+        Assert.Equal(default(int), value);
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Error_Should_Return_Error_If_Error()
+    {
+        var result = new Result<int, string>("error");
+        string error = result!;
+        Assert.Equal("error", error);
+    }
+
+    [Fact]
+    public void Implicit_Conversion_To_Error_Should_Return_Default_If_Success()
+    {
+        var result = new Result<int, string>(42);
+        string error = result!;
+        Assert.Equal(default(string), error);
     }
 }
