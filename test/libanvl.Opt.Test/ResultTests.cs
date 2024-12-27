@@ -371,8 +371,6 @@ public class ResultTests
         Assert.Throws<InvalidOperationException>(() => result.Unwrap());
     }
 
-    private static string IntToString(int value) => value.ToString();
-
     private static string ThrowExceptionWithArg(int value) => throw new InvalidOperationException("error");
 
     private static string TwoIntsToString(int value1, int value2) => $"{value1}, {value2}";
@@ -396,8 +394,6 @@ public class ResultTests
         Assert.True(result.IsErr);
         Assert.Throws<InvalidOperationException>(() => result.Unwrap());
     }
-
-    private static int Return42() => 42;
 
     private static int ThrowException() => throw new InvalidOperationException("error");
 }

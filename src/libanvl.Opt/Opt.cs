@@ -269,7 +269,10 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     public override bool Equals(object? obj) => obj is Opt<T> other && Equals(other);
 
     /// <inheritdoc/>
-    public override int GetHashCode() => HashCode.Combine(_value, IsSome);
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_value, IsSome);
+    }
 
     /// <inheritdoc/>
     public override string ToString() => IsSome ? $"Some({_value})" : "None";
@@ -307,3 +310,4 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
         public readonly void Dispose() { }
     }
 }
+

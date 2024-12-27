@@ -42,6 +42,13 @@ See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to u
 - [X] Match on success or error with Match
 - [X] Convert between Opt and Result
 
+## libanvl.OneOrMany Features
+
+- [X] OneOrMany&lt;T&gt; for a single value or a collection of values
+- [X] Implicit conversions
+- [X] Equality operators
+- [X] Minimizes allocations
+
 ## Examples
 
 ```csharp
