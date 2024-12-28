@@ -82,4 +82,48 @@ public class OptTests
         var result = opt.AndThen(x => Opt.Some(x * 2));
         Assert.True(result.IsNone);
     }
+    [Fact]
+    public void CompareTo_ReturnsNegative_WhenThisIsSomeAndOtherIsNone()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt<int>.None;
+        Assert.True(opt1.CompareTo(opt2) < 0);
+    }
+
+    [Fact]
+    public void CompareTo_ReturnsPositive_WhenThisIsNoneAndOtherIsSome()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt.Some(5);
+        Assert.True(opt1.CompareTo(opt2) > 0);
+    }
+
+    [Fact]
+    public void CompareTo_ReturnsZero_WhenBothAreNone()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt<int>.None;
+        Assert.Equal(0, opt1.CompareTo(opt2));
+    }
+
+    [Fact]
+    public void CompareTo_ReturnsComparisonResult_WhenBothAreSome()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(10);
+        Assert.True(opt1.CompareTo(opt2) < 0);
+    }
+    [Fact]
+    public void ToString_ReturnsSome_WhenIsSome()
+    {
+        var opt = Opt.Some(5);
+        Assert.Equal("Some(5)", opt.ToString());
+    }
+
+    [Fact]
+    public void ToString_ReturnsNone_WhenIsNone()
+    {
+        var opt = Opt<int>.None;
+        Assert.Equal("None", opt.ToString());
+    }
 }

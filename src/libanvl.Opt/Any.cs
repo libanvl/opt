@@ -430,12 +430,12 @@ public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
     {
         if (IsSingle)
         {
-            return _single!.GetHashCode();
+            return _single.Unwrap().GetHashCode();
         }
 
         if (IsMany)
         {
-            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_many!);
+            return StructuralComparisons.StructuralEqualityComparer.GetHashCode(_many.Unwrap());
         }
 
         return 0;
