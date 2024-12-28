@@ -182,6 +182,54 @@ public class AnyTests
         Assert.False(any1 == any3);
         Assert.True(any1 != any3);
     }
+    [Fact]
+    public void Any_Equals_ShouldReturnTrue_WhenBothAreNone()
+    {
+        var any1 = new Any<int>();
+        var any2 = new Any<int>();
+        Assert.True(any1.Equals(any2));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnTrue_WhenBothAreSingleAndEqual()
+    {
+        var any1 = new Any<int>(42);
+        var any2 = new Any<int>(42);
+        Assert.True(any1.Equals(any2));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenBothAreSingleAndNotEqual()
+    {
+        var any1 = new Any<int>(42);
+        var any2 = new Any<int>(43);
+        Assert.False(any1.Equals(any2));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnTrue_WhenBothAreManyAndEqual()
+    {
+        var any1 = new Any<int>(new List<int> { 1, 2, 3 });
+        var any2 = new Any<int>(new List<int> { 1, 2, 3 });
+        Assert.True(any1.Equals(any2));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenBothAreManyAndNotEqual()
+    {
+        var any1 = new Any<int>(new List<int> { 1, 2, 3 });
+        var any2 = new Any<int>(new List<int> { 4, 5, 6 });
+        Assert.False(any1.Equals(any2));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnTrue_WhenOneIsSingleAndOtherIsSingleCollection()
+    {
+        var any1 = new Any<int>(42);
+        var any2 = new Any<int>(new List<int> { 42 });
+        Assert.True(any1.Equals(any2));
+    }
+
 
     [Fact]
     public void Any_FromSingle_ShouldCreateSingle()
@@ -367,5 +415,75 @@ public class AnyTests
         var opt = any.ToOpt();
         Assert.True(opt.IsSome);
         Assert.Equal(new List<int> { 1, 2, 3 }, opt.Unwrap());
+    }
+
+    [Fact]
+    public void Any_GetHashCode_ShouldReturnSameHashCode_ForEqualSingleElements()
+    {
+        var any1 = new Any<int>(42);
+        var any2 = new Any<int>(42);
+        Assert.Equal(any1.GetHashCode(), any2.GetHashCode());
+    }
+
+    [Fact]
+    public void Any_GetHashCode_ShouldReturnDifferentHashCode_ForDifferentSingleElements()
+    {
+        var any1 = new Any<int>(42);
+        var any2 = new Any<int>(43);
+        Assert.NotEqual(any1.GetHashCode(), any2.GetHashCode());
+    }
+
+    [Fact(Skip = "This is not currently true. It may be in the future.")]
+    public void Any_GetHashCode_ShouldReturnSameHashCode_ForEqualManyElements()
+    {
+        var any1 = new Any<int>(new List<int> { 1, 2, 3 });
+        var any2 = new Any<int>(new List<int> { 1, 2, 3 });
+        Assert.Equal(any1.GetHashCode(), any2.GetHashCode());
+    }
+
+    [Fact]
+    public void Any_GetHashCode_ShouldReturnDifferentHashCode_ForDifferentManyElements()
+    {
+        var any1 = new Any<int>(new List<int> { 1, 2, 3 });
+        var any2 = new Any<int>(new List<int> { 4, 5, 6 });
+        Assert.NotEqual(any1.GetHashCode(), any2.GetHashCode());
+    }
+
+    [Fact]
+    public void Any_ConstructorWithReadOnlySpan_ShouldBeNone_WhenEmpty()
+    {
+        var span = new ReadOnlySpan<int>(Array.Empty<int>());
+        var any = new Any<int>(span);
+        Assert.True(any.IsNone);
+        Assert.False(any.IsSome);
+        Assert.False(any.IsSingle);
+        Assert.False(any.IsMany);
+        Assert.Equal(0, any.Count);
+    }
+
+    [Fact]
+    public void Any_ConstructorWithReadOnlySpan_ShouldBeSingle_WhenOneElement()
+    {
+        var span = new ReadOnlySpan<int>(new int[] { 42 });
+        var any = new Any<int>(span);
+        Assert.False(any.IsNone);
+        Assert.True(any.IsSome);
+        Assert.True(any.IsSingle);
+        Assert.False(any.IsMany);
+        Assert.Equal(1, any.Count);
+        Assert.Equal(42, any.Single.Unwrap());
+    }
+
+    [Fact]
+    public void Any_ConstructorWithReadOnlySpan_ShouldBeMany_WhenMultipleElements()
+    {
+        var span = new ReadOnlySpan<int>(new int[] { 1, 2, 3 });
+        var any = new Any<int>(span);
+        Assert.False(any.IsNone);
+        Assert.True(any.IsSome);
+        Assert.False(any.IsSingle);
+        Assert.True(any.IsMany);
+        Assert.Equal(3, any.Count);
+        Assert.Equal(new List<int> { 1, 2, 3 }, any.Many.Unwrap());
     }
 }
