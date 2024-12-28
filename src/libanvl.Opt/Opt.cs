@@ -1,5 +1,6 @@
 ﻿using libanvl.Exceptions;
 using System.Collections;
+using System;
 
 namespace libanvl;
 
@@ -86,7 +87,7 @@ public static class Opt
 /// Represents an optional value that may or may not be present.
 /// </summary>
 /// <typeparam name="T">The type of the value.</typeparam>
-public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
+public readonly struct Opt<T> : IEquatable<Opt<T>>, IComparable<Opt<T>> where T : notnull
 {
     /// <summary>
     /// Represents the absence of a value.
@@ -258,6 +259,26 @@ public readonly struct Opt<T> : IEquatable<Opt<T>> where T : notnull
     public Opt<U> Cast<U>() where U : notnull => OptException.ThrowInternalErrorIfNull(_value) is U casted
         ? new(casted)
         : Opt<U>.None;
+
+    /// <summary>
+    /// Compares this instance with a specified <see cref="Opt{T}"/> and indicates whether this instance
+    /// precedes, follows, or appears in the same position in the sort order as the specified <see cref="Opt{T}"/>.
+    /// </summary>
+    /// <param name="other">An <see cref="Opt{T}"/> to compare with this instance.</param>
+    /// <returns>A value that indicates the relative order of the objects being compared.</returns>
+    public int CompareTo(Opt<T> other)
+    {
+        if (IsSome && other.IsNone) return -1;
+        if (IsNone && other.IsSome) return 1;
+        if (IsNone && other.IsNone) return 0;
+
+        if (_value is IComparable<T> comparableValue)
+        {
+            return comparableValue.CompareTo(other._value!);
+        }
+
+        return 0;
+    }
 
     /// <inheritdoc/>
     public bool Equals(Opt<T> other) => Equals(other, EqualityComparer<T>.Default);

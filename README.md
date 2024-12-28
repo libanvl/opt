@@ -5,10 +5,11 @@
 
 # libanvl.Opt
 
-A null-free optional value library for .NET.
+A null-free optional value library for .NET with an emphasis on minimizing additional allocations.
 
 * An optional value is represented as the struct Opt&lt;T&gt;
 * A possible value or error is represented as the struct Result&lt;T, E&gt;
+* A zero to N values are represented as the struct Any&lt;T&gt;
 
 See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to use Opt.
 
@@ -47,57 +48,13 @@ See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to u
 - [X] OneOrMany&lt;T&gt; for a single value or a collection of values
 - [X] Implicit conversions
 - [X] Equality operators
-- [X] Minimizes allocations
 
-## Examples
+## libanvl.Any Features
 
-```csharp
-class Car
-{
-  public string Driver { get; set;}
-}
-
-public void AcceptOptionalValue(Opt<Car> optCar, Opt<string> optName)
-{
-  if (optCar.IsSome)
-  {
-    optCar.Unwrap().Driver = optName.SomeOr("Default Driver");
-  }
-
-  if (optCar.IsNone)
-  {
-    throw new Exception();
-  }
-
-  // or use Unwrap() to throw for None
-
-  Car bcar = optCar.Unwrap();
-}
-
-public void RunCarOperations()
-{
-  var acar = new Car();
-  AcceptOptionalValue(acar, "Rick");
-
-  Car? nocar = null;
-  AcceptOptionalValue(Opt.From(nocar), Opt<string>.None)
-
-  // use Select to project to an Opt of an inner property
-  Opt<string> driver = acar.Select(x => x.Driver);
-}
-
-public void RunResultOperations()
-{
-  Result<Car, string> carResult = Result.Ok(new Car());
-  Result<Car, string> errorResult = Result.Err("Error");
-
-  carResult.Match(
-    Ok: car => Console.WriteLine(car.Driver),
-    Err: err => Console.WriteLine(err)
-  );
-
-  // Convert between Opt and Result
-  Opt<Car> optCar = carResult.ToOpt();
-  Result<Car, string> resultCar = optCar.ToResult("Error");
-}
-```
+- [X] Any&lt;T&gt; for a single value or multiple values
+- [X] Implicit conversions
+- [X] Equality operators
+- [X] Add and remove elements
+- [X] Convert to array, list, or enumerable
+- [X] Convert to Opt&lt;T&gt;
+- [X] Cast elements to a compatible type

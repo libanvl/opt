@@ -245,4 +245,57 @@ public class Examples
         Assert.True(result.IsErr);
         Assert.Throws<InvalidOperationException>(() => result.Unwrap());
     }
+
+    [Fact]
+    public void Any_None()
+    {
+        Any<int> none = default;
+        Assert.True(none.IsNone);
+    }
+
+    [Fact]
+    public void Any_Single()
+    {
+        Any<int> single = 5;
+        Assert.True(single.IsSingle);
+        Assert.Equal(5, single.Single.Unwrap());
+    }
+
+    [Fact]
+    public void Any_Many()
+    {
+        Any<int> many = [1, 2, 3];
+        Assert.True(many.IsMany);
+        Assert.Equal(3, many.Count);
+        Assert.Collection(
+            many.Many.Unwrap(),
+            x => Assert.Equal(1, x),
+            x => Assert.Equal(2, x),
+            x => Assert.Equal(3, x));
+    }
+
+    [Fact]
+    public void Any_Iterate()
+    {
+        Any<int> none = default;
+        foreach (int i in none)
+        {
+            Assert.Fail("Unreachable");
+        }
+
+        Any<int> single = 5;
+        var sum = 0;
+        foreach (int i in single)
+        {
+            sum += i;
+        }
+
+        Any<int> many = [1, 2, 3];
+        sum = 0;
+        foreach (int i in many)
+        {
+            sum += i;
+        }
+        Assert.Equal(6, sum);
+    }
 }
