@@ -41,12 +41,12 @@ public interface IAnyRefMap<K, V>
     ref Any<V> GetValueRef(K key);
 
     /// <summary>
-    /// Tries to get a reference to the value associated with the specified key.
+    /// Gets a reference to the value associated with the specified key.
     /// </summary>
     /// <param name="key">The key whose value to get.</param>
-    /// <param name="value">When this method returns, contains the reference to the value associated with the specified key, if the key is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
-    /// <returns><see langword="true"/> if the map contains an element with the specified key; otherwise, <see langword="false"/>.</returns>
-    bool TryGetValueRef(K key, ref Any<V> value);
+    /// <param name="found">When this method returns, contains <see langword="true"/> if the key was found; otherwise, <see langword="false"/>.</param>
+    /// <returns>A reference to the value associated with the specified key, or a null ref if not found.</returns>
+    ref Any<V> GetValueRef(K key, out bool found);
 
     /// <summary>
     /// Performs the specified action on each key and reference to a value in the map.

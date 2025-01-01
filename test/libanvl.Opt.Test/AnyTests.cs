@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using Xunit;
 
 namespace libanvl.opt.test;
@@ -142,33 +143,46 @@ public class AnyTests
         Assert.True(any.IsNone);
     }
 
-    [Fact]
-    public void Any_ContainsElement_ShouldReturnCorrectResult()
+    [Theory]
+    [InlineData(new int[] { 1, 2, 3 }, 2, true)]
+    [InlineData(new int[] { 1, 2, 3 }, 4, false)]
+    [InlineData(new int[] { }, 1, false)]
+    [InlineData(new int[] { 42 }, 42, true)]
+    [InlineData(new int[] { 42 }, 43, false)]
+    public void Any_ContainsElement_ShouldReturnCorrectResult(int[] input, int element, bool expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        Assert.True(any.Contains(2));
-        Assert.False(any.Contains(4));
+        var any = new Any<int>(input);
+        Assert.Equal(expected, any.Contains(element));
     }
 
-    [Fact]
-    public void Any_ToArray_ShouldReturnCorrectArray()
+    [Theory]
+    [InlineData(new int[] { }, new int[] { })]
+    [InlineData(new int[] { 1 }, new int[] { 1 })]
+    [InlineData(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 })]
+    public void Any_ToArray_ShouldReturnCorrectArray(int[] input, int[] expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        Assert.Equal(new int[] { 1, 2, 3 }, any.ToArray());
+        var any = new Any<int>(input);
+        Assert.Equal(expected, any.ToArray());
     }
 
-    [Fact]
-    public void Any_ToList_ShouldReturnCorrectList()
+    [Theory]
+    [InlineData(new int[] { }, new int[] { })]
+    [InlineData(new int[] { 1 }, new int[] { 1 })]
+    [InlineData(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 })]
+    public void Any_ToList_ShouldReturnCorrectList(int[] input, int[] expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        Assert.Equal(new List<int> { 1, 2, 3 }, any.ToList());
+        var any = new Any<int>(input);
+        Assert.Equal(expected, any.ToList());
     }
 
-    [Fact]
-    public void Any_ToEnumerable_ShouldReturnCorrectEnumerable()
+    [Theory]
+    [InlineData(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 })]
+    [InlineData(new int[] { 42 }, new int[] { 42 })]
+    [InlineData(new int[] { }, new int[] { })]
+    public void Any_ToEnumerable_ShouldReturnCorrectEnumerable(int[] input, int[] expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        Assert.Equal(new List<int> { 1, 2, 3 }, any.ToEnumerable());
+        var any = new Any<int>(input);
+        Assert.Equal(expected, any.ToEnumerable());
     }
 
     [Fact]
@@ -272,13 +286,18 @@ public class AnyTests
         Assert.Equal(new List<int> { 1, 2, 3 }, any.Many.Unwrap());
     }
 
-    [Fact]
-    public void Any_Cast_ShouldCastElements()
+    [Theory]
+    [InlineData(new int[] { 1, 2, 3 }, new object[] { 1, 2, 3 })]
+    [InlineData(new int[] { 42 }, new object[] { 42 })]
+    [InlineData(new int[] { }, new object[] { })]
+    public void Any_Cast_ShouldCastElements(int[] input, object[] expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
+        var any = new Any<int>(input);
         var casted = any.Cast<object>();
-        Assert.True(casted.IsMany);
-        Assert.Equal(new List<object> { 1, 2, 3 }, casted.Many.Unwrap());
+        Assert.Equal(expected.Length > 1, casted.IsMany);
+        Assert.Equal(expected.Length == 1, casted.IsSingle);
+        Assert.Equal(expected.Length == 0, casted.IsNone);
+        Assert.Equal(expected, casted.ToArray());
     }
 
     [Fact]
@@ -345,14 +364,17 @@ public class AnyTests
         Assert.True(noneMatched);
     }
 
-    [Fact]
-    public void Any_Select_ShouldTransformElements()
+    [Theory]
+    [InlineData(new int[] { 1, 2, 3 }, new int[] { 2, 4, 6 })]
+    [InlineData(new int[] { 42 }, new int[] { 84 })]
+    [InlineData(new int[] { }, new int[] { })]
+    public void Any_Select_ShouldTransformElements(int[] input, int[] expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
+        var any = new Any<int>(input);
         var transformed = any.Select(x => x * 2);
-        Assert.True(transformed.IsMany);
-        Assert.Equal(new List<int> { 2, 4, 6 }, transformed.Many.Unwrap());
+        Assert.Equal(expected, transformed.ToArray());
     }
+
     [Fact]
     public void Any_AddElement_ShouldAddToNone()
     {
@@ -485,5 +507,52 @@ public class AnyTests
         Assert.True(any.IsMany);
         Assert.Equal(3, any.Count);
         Assert.Equal(new List<int> { 1, 2, 3 }, any.Many.Unwrap());
+    }
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenSingleAndManyAreNotEqual()
+    {
+        var anySingle = new Any<int>(42);
+        var anyMany = new Any<int>(new List<int> { 1, 2, 3 });
+        Assert.False(anySingle.Equals(anyMany));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenManyAndSingleAreNotEqual()
+    {
+        var anyMany = new Any<int>(new List<int> { 1, 2, 3 });
+        var anySingle = new Any<int>(42);
+        Assert.False(anyMany.Equals(anySingle));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenSingleAndNoneAreNotEqual()
+    {
+        var anySingle = new Any<int>(42);
+        var anyNone = new Any<int>();
+        Assert.False(anySingle.Equals(anyNone));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenNoneAndSingleAreNotEqual()
+    {
+        var anyNone = new Any<int>();
+        var anySingle = new Any<int>(42);
+        Assert.False(anyNone.Equals(anySingle));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenManyAndNoneAreNotEqual()
+    {
+        var anyMany = new Any<int>(new List<int> { 1, 2, 3 });
+        var anyNone = new Any<int>();
+        Assert.False(anyMany.Equals(anyNone));
+    }
+
+    [Fact]
+    public void Any_Equals_ShouldReturnFalse_WhenNoneAndManyAreNotEqual()
+    {
+        var anyNone = new Any<int>();
+        var anyMany = new Any<int>(new List<int> { 1, 2, 3 });
+        Assert.False(anyNone.Equals(anyMany));
     }
 }
