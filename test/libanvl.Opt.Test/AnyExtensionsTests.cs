@@ -4,165 +4,131 @@ namespace libanvl.opt.test;
 
 public class AnyExtensionsTests
 {
-    [Fact]
-    public void Select_ShouldTransformElements()
+    [Theory]
+    [MemberData(nameof(GetAggregateTestData))]
+    public void Aggregate_ShouldAccumulateValues(Any<int> any, int expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var transformed = any.Select(x => x * 2);
-        Assert.True(transformed.IsMany);
-        Assert.Equal(new List<int> { 2, 4, 6 }, transformed.Many.Unwrap());
-    }
-
-    [Fact]
-    public void Where_ShouldFilterElements()
-    {
-        var any = new Any<int>(new List<int> { 1, 2, 3, 4 });
-        var filtered = any.Where(x => x % 2 == 0);
-        Assert.True(filtered.IsMany);
-        Assert.Equal(new List<int> { 2, 4 }, filtered.Many.Unwrap());
-    }
-
-    [Fact]
-    public void SelectMany_ShouldFlattenSequences()
-    {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var flattened = any.SelectMany(x => new List<int> { x, x * 2 });
-        Assert.True(flattened.IsMany);
-        Assert.Equal(new List<int> { 1, 2, 2, 4, 3, 6 }, flattened.Many.Unwrap());
-    }
-
-    [Fact]
-    public void Aggregate_ShouldAccumulateValues()
-    {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
         var sum = any.Aggregate(0, (acc, x) => acc + x);
-        Assert.Equal(6, sum);
+        Assert.Equal(expected, sum);
     }
 
-    [Fact]
-    public void Any_ShouldReturnTrueIfAnyElementMatchesPredicate()
+    public static TheoryData<Any<int>, int> GetAggregateTestData()
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
+        return new TheoryData<Any<int>, int>
+        {
+            { new Any<int>(new List<int> { 1, 2, 3 }), 6 },
+            { new Any<int>(42), 42 },
+            { new Any<int>(), 0 }
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(GetAnyTestData))]
+    public void Any_ShouldReturnTrueIfAnyElementMatchesPredicate(Any<int> any, bool expected)
+    {
         var result = any.Any(x => x == 2);
-        Assert.True(result);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void All_ShouldReturnTrueIfAllElementsMatchPredicate()
+    public static TheoryData<Any<int>, bool> GetAnyTestData()
     {
-        var any = new Any<int>(new List<int> { 2, 4, 6 });
-        var result = any.All(x => x % 2 == 0);
-        Assert.True(result);
+        return new TheoryData<Any<int>, bool>
+        {
+            { new Any<int>(new List<int> { 1, 2, 3 }), true },
+            { new Any<int>(42), false },
+            { new Any<int>(), false }
+        };
     }
 
-    [Fact]
-    public void FirstOrDefault_ShouldReturnFirstMatchingElementOrDefault()
+    [Theory]
+    [MemberData(nameof(GetSelectManyTestData))]
+    public void SelectMany_ShouldProjectAndFlattenSequences(Any<int> any, Func<int, IEnumerable<int>> selector, Any<int> expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var result = any.FirstOrDefault(x => x > 1);
-        Assert.Equal(2, result);
+        var result = any.SelectMany(selector);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void Match_ShouldInvokeCorrectAction()
+    public static TheoryData<Any<int>, Func<int, IEnumerable<int>>, Any<int>> GetSelectManyTestData()
     {
-        var anySingle = new Any<int>(42);
-        var anyNone = new Any<int>();
-
-        bool singleMatched = false;
-        bool noneMatched = false;
-
-        anySingle.Match(
-            some => singleMatched = true,
-            () => noneMatched = true
-        );
-        Assert.True(singleMatched);
-        Assert.False(noneMatched);
-
-        anyNone.Match(
-            some => singleMatched = true,
-            () => noneMatched = true
-        );
-        Assert.True(noneMatched);
+        return new TheoryData<Any<int>, Func<int, IEnumerable<int>>, Any<int>>
+        {
+            { new Any<int>(new List<int> { 1, 2, 3 }), x => new List<int> { x, x * 2 }, new Any<int>(new List<int> { 1, 2, 2, 4, 3, 6 }) },
+            { new Any<int>(42), x => new List<int> { x, x * 2 }, new Any<int>(new List<int> { 42, 84 }) },
+            { new Any<int>(), x => new List<int> { x, x * 2 }, new Any<int>() }
+        };
     }
 
-    [Fact]
-    public void ToDictionary_ShouldCreateDictionaryFromElements()
+    [Theory]
+    [MemberData(nameof(GetWhereTestData))]
+    public void Where_ShouldFilterValuesBasedOnPredicate(Any<int> any, Func<int, bool> predicate, Any<int> expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var dictionary = any.ToDictionary(x => x);
-        Assert.Equal(3, dictionary.Count);
-        Assert.Equal(1, dictionary[1]);
-        Assert.Equal(2, dictionary[2]);
-        Assert.Equal(3, dictionary[3]);
+        var result = any.Where(predicate);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void ToDictionary_ShouldReturnEmptyDictionary_WhenSourceIsNone()
+    public static TheoryData<Any<int>, Func<int, bool>, Any<int>> GetWhereTestData()
     {
-        var any = new Any<int>();
-        var dictionary = any.ToDictionary(x => x);
-        Assert.Empty(dictionary);
+        return new TheoryData<Any<int>, Func<int, bool>, Any<int>>
+        {
+            { new Any<int>(new List<int> { 1, 2, 3 }), x => x > 1, new Any<int>(new List<int> { 2, 3 }) },
+            { new Any<int>(42), x => x > 1, new Any<int>(42) },
+            { new Any<int>(), x => x > 1, new Any<int>() }
+        };
     }
 
-    [Fact]
-    public void ToDictionary_ShouldReturnSingleElementDictionary_WhenSourceIsSingle()
+    [Theory]
+    [MemberData(nameof(GetToDictionaryTestData))]
+    public void ToDictionary_ShouldCreateDictionaryFromAny(Any<int> any, Func<int, int> keySelector, Dictionary<int, int> expected)
     {
-        var any = new Any<int>(42);
-        var dictionary = any.ToDictionary(x => x);
-        Assert.Single(dictionary);
-        Assert.Equal(42, dictionary[42]);
+        var result = any.ToDictionary(keySelector);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void ToDictionary_ShouldReturnDictionaryWithCorrectKeysAndValues_WhenSourceIsMany()
+    public static TheoryData<Any<int>, Func<int, int>, Dictionary<int, int>> GetToDictionaryTestData()
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var dictionary = any.ToDictionary(x => x);
-        Assert.Equal(3, dictionary.Count);
-        Assert.Equal(1, dictionary[1]);
-        Assert.Equal(2, dictionary[2]);
-        Assert.Equal(3, dictionary[3]);
-    }
-    [Fact]
-    public void Where_ShouldReturnSource_WhenSourceIsNone()
-    {
-        var any = new Any<int>();
-        var result = any.Where(x => x > 0);
-        Assert.True(result.IsNone);
+        return new TheoryData<Any<int>, Func<int, int>, Dictionary<int, int>>
+        {
+            { new Any<int>([1, 2, 3]), x => x, new Dictionary<int, int> { { 1, 1 }, { 2, 2 }, { 3, 3 } } },
+            { new Any<int>(42), x => x, new Dictionary<int, int> { { 42, 42 } } },
+            { new Any<int>(), x => x, new Dictionary<int, int>() }
+        };
     }
 
-    [Fact]
-    public void Where_ShouldReturnEmpty_WhenNoElementsMatchPredicate()
+    [Theory]
+    [MemberData(nameof(GetFirstOrDefaultTestData))]
+    public void FirstOrDefault_ShouldReturnFirstMatchingElementOrDefault(Any<int> any, Func<int, bool> predicate, int expected)
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3 });
-        var result = any.Where(x => x > 3);
-        Assert.True(result.IsNone);
+        var result = any.FirstOrDefault(predicate);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void Where_ShouldReturnSingleElement_WhenSourceIsSingleAndMatchesPredicate()
+    public static TheoryData<Any<int>, Func<int, bool>, int> GetFirstOrDefaultTestData()
     {
-        var any = new Any<int>(2);
-        var result = any.Where(x => x > 1);
-        Assert.True(result.IsSingle);
-        Assert.Equal(2, result.Single.Unwrap());
+        return new TheoryData<Any<int>, Func<int, bool>, int>
+        {
+            { new Any<int>([1, 2, 3]), x => x > 1, 2 },
+            { new Any<int>(42), x => x > 1, 42 },
+            { new Any<int>(), x => x > 1, default }
+        };
     }
 
-    [Fact]
-    public void Where_ShouldReturnEmpty_WhenSourceIsSingleAndDoesNotMatchPredicate()
+    [Theory]
+    [MemberData(nameof(GetAllTestData))]
+    public void All_ShouldReturnTrueIfAllElementsMatchPredicate(Any<int> any, Func<int, bool> predicate, bool expected)
     {
-        var any = new Any<int>(2);
-        var result = any.Where(x => x > 2);
-        Assert.True(result.IsNone);
+        var result = any.All(predicate);
+        Assert.Equal(expected, result);
     }
 
-    [Fact]
-    public void Where_ShouldFilterElements_WhenSourceIsMany()
+    public static TheoryData<Any<int>, Func<int, bool>, bool> GetAllTestData()
     {
-        var any = new Any<int>(new List<int> { 1, 2, 3, 4 });
-        var result = any.Where(x => x % 2 == 0);
-        Assert.True(result.IsMany);
-        Assert.Equal(new List<int> { 2, 4 }, result.Many.Unwrap());
+        return new TheoryData<Any<int>, Func<int, bool>, bool>
+        {
+            { new Any<int>(new List<int> { 1, 2, 3 }), x => x > 0, true },
+            { new Any<int>(new List<int> { 1, 2, 3 }), x => x > 1, false },
+            { new Any<int>(42), x => x > 0, true },
+            { new Any<int>(42), x => x > 42, false },
+            { new Any<int>(), x => x > 0, true }
+        };
     }
 }

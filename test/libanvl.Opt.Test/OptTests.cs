@@ -126,4 +126,146 @@ public class OptTests
         var opt = Opt<int>.None;
         Assert.Equal("None", opt.ToString());
     }
+
+    [Fact]
+    public void Match_InvokesSomeFunc_WhenIsSome()
+    {
+        var opt = Opt.Some(5);
+        bool someInvoked = false;
+        bool noneInvoked = false;
+
+        opt.Match(
+            some: _ => someInvoked = true,
+            none: () => noneInvoked = true
+        );
+
+        Assert.True(someInvoked);
+        Assert.False(noneInvoked);
+    }
+
+    [Fact]
+    public void Match_InvokesNoneFunc_WhenIsNone()
+    {
+        var opt = Opt<int>.None;
+        bool someInvoked = false;
+        bool noneInvoked = false;
+
+        opt.Match(
+            some: _ => someInvoked = true,
+            none: () => noneInvoked = true
+        );
+
+        Assert.False(someInvoked);
+        Assert.True(noneInvoked);
+    }
+
+    [Fact]
+    public void Match_InvokesSomeAction_WhenIsSome()
+    {
+        var opt = Opt.Some(5);
+        bool someInvoked = false;
+        bool noneInvoked = false;
+
+        opt.Match(
+            some: _ => { someInvoked = true; },
+            none: () => { noneInvoked = true; }
+        );
+
+        Assert.True(someInvoked);
+        Assert.False(noneInvoked);
+    }
+
+    [Fact]
+    public void Match_InvokesNoneAction_WhenIsNone()
+    {
+        var opt = Opt<int>.None;
+        bool someInvoked = false;
+        bool noneInvoked = false;
+
+        opt.Match(
+            some: _ => { someInvoked = true; },
+            none: () => { noneInvoked = true; }
+        );
+
+        Assert.False(someInvoked);
+        Assert.True(noneInvoked);
+    }
+    [Fact]
+    public void Equals_ReturnsTrue_WhenBothAreNone()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt<int>.None;
+        Assert.True(opt1.Equals(opt2));
+    }
+
+    [Fact]
+    public void Equals_ReturnsFalse_WhenOneIsSomeAndOtherIsNone()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt<int>.None;
+        Assert.False(opt1.Equals(opt2));
+    }
+
+    [Fact]
+    public void Equals_ReturnsTrue_WhenBothAreSomeWithSameValue()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(5);
+        Assert.True(opt1.Equals(opt2));
+    }
+
+    [Fact]
+    public void Equals_ReturnsFalse_WhenBothAreSomeWithDifferentValues()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(10);
+        Assert.False(opt1.Equals(opt2));
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsSameHashCode_WhenBothAreNone()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt<int>.None;
+        Assert.Equal(opt1.GetHashCode(), opt2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsSameHashCode_WhenBothAreSomeWithSameValue()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(5);
+        Assert.Equal(opt1.GetHashCode(), opt2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsDifferentHashCode_WhenBothAreSomeWithDifferentValues()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(10);
+        Assert.NotEqual(opt1.GetHashCode(), opt2.GetHashCode());
+    }
+    [Fact]
+    public void GetHashCode_ReturnsSameHashCode_ForSameValues()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(5);
+        Assert.Equal(opt1.GetHashCode(), opt2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsDifferentHashCode_ForDifferentValues()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(10);
+        Assert.NotEqual(opt1.GetHashCode(), opt2.GetHashCode());
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsSameHashCode_ForNone()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt<int>.None;
+        Assert.Equal(opt1.GetHashCode(), opt2.GetHashCode());
+    }
 }

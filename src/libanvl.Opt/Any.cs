@@ -57,7 +57,7 @@ public static class Any
 public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
     where T : notnull
 {
-    private static readonly Any<T> none = new();
+    private static readonly Any<T> none = [];
 
     private Opt<T> _single;
     private Opt<List<T>> _many;

@@ -34,16 +34,11 @@ public class AnyMap<K, V> : Dictionary<K, Any<V>>, IAnyRefMap<K, V>
         return ref value;
     }
 
-    bool IAnyRefMap<K, V>.TryGetValueRef(K key, ref Any<V> value)
+    ref Any<V> IAnyRefMap<K, V>.GetValueRef(K key, out bool found)
     {
-        ref Any<V> refValue = ref CollectionsMarshal.GetValueRefOrNullRef(this, key);
-        if (Unsafe.IsNullRef(ref refValue))
-        {
-            return false;
-        }
-
-        value = ref refValue;
-        return true;
+        ref Any<V> value = ref CollectionsMarshal.GetValueRefOrNullRef(this, key);
+        found = !Unsafe.IsNullRef(ref value);
+        return ref value;
     }
 
     void IAnyRefMap<K, V>.ForEachRef(IAnyRefMap<K, V>.RefAction action)

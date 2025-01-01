@@ -1,6 +1,7 @@
 ﻿using libanvl.Exceptions;
 using System.Collections;
 using System;
+using System.Runtime.Serialization;
 
 namespace libanvl;
 
