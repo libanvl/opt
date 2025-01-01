@@ -58,3 +58,13 @@ See the [Examples Tests](test/libanvl.Opt.Test/Examples.cs) for more on how to u
 - [X] Convert to array, list, or enumerable
 - [X] Convert to Opt&lt;T&gt;
 - [X] Cast elements to a compatible type
+
+## libanvl.AnyMap Features
+
+- [X] Dictionary-like collection that maps keys to values of type Any&lt;V&gt;
+- [X] Implements IAnyRefMap&lt;K, V&gt; for reference-based operations
+- [X] Get or add value by reference with GetOrAddValueRef
+- [X] Get value by reference with GetValueRef
+- [X] Try to get value by reference with TryGetValueRef
+- [X] Perform actions on each reference with ForEachRef
+- [X] Enumerate references with GetEnumerator

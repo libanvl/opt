@@ -1,4 +1,6 @@
 ﻿using libanvl.Exceptions;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace libanvl.opt.test;
@@ -297,5 +299,47 @@ public class Examples
             sum += i;
         }
         Assert.Equal(6, sum);
+    }
+
+    [Fact]
+    public void MapOfAny()
+    {
+        AnyMap<string, int> map = new()
+        {
+            ["alpha"] = default,
+            ["bravo"] = 2,
+            ["charlie"] = [3, 4, 5]
+        };
+
+        Assert.True(map.ContainsKey("alpha"));
+        Assert.True(map.ContainsKey("bravo"));
+        Assert.True(map.ContainsKey("charlie"));
+
+        IAnyRefMap<string, int> refMap = map;
+        ref var value = ref refMap.GetValueRef("alpha");
+        Assert.True(value.IsNone);
+
+        value = ref refMap.GetValueRef("bravo");
+        Assert.True(value.IsSingle);
+        Assert.Equal(2, value.Single.Unwrap());
+
+        value = ref refMap.GetValueRef("charlie");
+        Assert.True(value.IsMany);
+        Assert.Collection(
+            value.Many.Unwrap(),
+            x => Assert.Equal(3, x),
+            x => Assert.Equal(4, x),
+            x => Assert.Equal(5, x));
+
+        refMap["alpha"].Add(1);
+        Assert.True(map["alpha"].IsSingle);
+        Assert.Equal(1, map["alpha"].Single.Unwrap());
+
+        refMap["bravo"].Add(3);
+        Assert.True(map["bravo"].IsMany);
+        Assert.Collection(
+            map["bravo"].Many.Unwrap(),
+            x => Assert.Equal(2, x),
+            x => Assert.Equal(3, x));
     }
 }
