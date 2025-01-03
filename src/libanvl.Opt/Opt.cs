@@ -1,7 +1,5 @@
-﻿using libanvl.Exceptions;
-using System.Collections;
-using System;
-using System.Runtime.Serialization;
+﻿using System.Collections;
+using libanvl.Exceptions;
 
 namespace libanvl;
 
@@ -86,9 +84,84 @@ public static class Opt
     /// <param name="opt">The option to transform.</param>
     /// <param name="fn">The function to transform the value.</param>
     /// <returns>The transformed option.</returns>
-    public static Opt<U> AndThen<T, U>(this Opt<T> opt, Func<T, Opt<U>> fn) where T : notnull where U : notnull
+    public static Opt<U> AndThen<T, U>(this Opt<T> opt, Func<T, Opt<U>> fn)
+        where T : notnull
+        where U : notnull
     {
         return opt.IsSome ? fn(opt.Unwrap()) : Opt<U>.None;
+    }
+
+    /// <summary>
+    /// Transforms the option using a function that returns another option.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="opt">The option to transform.</param>
+    /// <param name="fn">The function to transform the value.</param>
+    /// <returns>The transformed option.</returns>
+    public static Opt<U> AndThen<T, U>(this Opt<T> opt, Func<T, U?> fn)
+        where T : notnull
+        where U : notnull
+    {
+        return opt.IsSome ? From(fn(opt.Unwrap())) : Opt<U>.None;
+    }
+
+    /// <summary>
+    /// Transforms the option using a function that returns another option.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="opt">The option to transform.</param>
+    /// <param name="fn">The function to transform the value.</param>
+    /// <returns>The transformed option.</returns>
+    public static Opt<U> AndThen<T, U>(this Opt<T> opt, Func<T, U?> fn)
+        where T : notnull
+        where U : struct
+    {
+        return opt.IsSome ? From(fn(opt.Unwrap())) : Opt<U>.None;
+    }
+
+    /// <summary>
+    /// Returns the first option if it has a value, otherwise returns the result of the specified function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="U">The type of the state.</typeparam>
+    /// <param name="opt">The option to check.</param>
+    /// <param name="state">The state to pass to the function if the option does not have a value.</param>
+    /// <param name="fn">The function to invoke if the option does not have a value.</param>
+    /// <returns>The first option if it has a value, otherwise the result of the function.</returns>
+    public static Opt<T> OrThen<T, U>(this Opt<T> opt, U state, Func<U, T?> fn)
+        where T : notnull
+    {
+        return opt.IsSome ? opt : From(fn(state));
+    }
+
+    /// <summary>
+    /// Returns the first option if it has a value, otherwise returns the result of the specified function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="U">The type of the state.</typeparam>
+    /// <param name="opt">The option to check.</param>
+    /// <param name="state">The state to pass to the function if the option does not have a value.</param>
+    /// <param name="fn">The function to invoke if the option does not have a value.</param>
+    /// <returns>The first option if it has a value, otherwise the result of the function.</returns>
+    public static Opt<T> OrThen<T, U>(this Opt<T> opt, U state, Func<U, T?> fn)
+        where T : struct
+    {
+        return opt.IsSome ? opt : From(fn(state));
+    }
+
+    /// <summary>
+    /// Returns the first option if it has a value, otherwise returns the second option.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="left">The first option.</param>
+    /// <param name="right">The second option.</param>
+    /// <returns>The first option if it has a value, otherwise the second option.</returns>
+    public static Opt<T> OrThen<T>(this Opt<T> left, Opt<T> right)
+        where T : notnull
+    {
+        return left.IsSome ? left : right;
     }
 }
 
