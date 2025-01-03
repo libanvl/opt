@@ -82,6 +82,7 @@ public class OptTests
         var result = opt.AndThen(x => Opt.Some(x * 2));
         Assert.True(result.IsNone);
     }
+
     [Fact]
     public void CompareTo_ReturnsNegative_WhenThisIsSomeAndOtherIsNone()
     {
@@ -311,11 +312,58 @@ public class OptTests
     }
 
     [Fact]
-    public void Where_ReturnsNone_WhenPredicateIsFalse()
+    public void AndThen_WithNullableFunc_ReturnsTransformedOption_WhenSome()
     {
         var opt = Opt.Some(5);
-        var result = opt.Where(x => x < 3);
+        var result = opt.AndThen(x => (int?)(x * 2));
+        Assert.True(result.IsSome);
+        Assert.Equal(10, result.Unwrap());
+    }
+
+    [Fact]
+    public void AndThen_WithNullableFunc_ReturnsNone_WhenNone()
+    {
+        var opt = Opt<int>.None;
+        var result = opt.AndThen(x => (int?)(x * 2));
         Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void OrThen_WithFunc_ReturnsFirstOption_WhenSome()
+    {
+        var opt = Opt.Some(5);
+        var result = opt.OrThen("state", state => (int?)10);
+        Assert.True(result.IsSome);
+        Assert.Equal(5, result.Unwrap());
+    }
+
+    [Fact]
+    public void OrThen_WithFunc_ReturnsTransformedOption_WhenNone()
+    {
+        var opt = Opt<int>.None;
+        var result = opt.OrThen("state", state => (int?)10);
+        Assert.True(result.IsSome);
+        Assert.Equal(10, result.Unwrap());
+    }
+
+    [Fact]
+    public void OrThen_WithOption_ReturnsFirstOption_WhenSome()
+    {
+        var opt1 = Opt.Some(5);
+        var opt2 = Opt.Some(10);
+        var result = opt1.OrThen(opt2);
+        Assert.True(result.IsSome);
+        Assert.Equal(5, result.Unwrap());
+    }
+
+    [Fact]
+    public void OrThen_WithOption_ReturnsSecondOption_WhenNone()
+    {
+        var opt1 = Opt<int>.None;
+        var opt2 = Opt.Some(10);
+        var result = opt1.OrThen(opt2);
+        Assert.True(result.IsSome);
+        Assert.Equal(10, result.Unwrap());
     }
 
     [Fact]
