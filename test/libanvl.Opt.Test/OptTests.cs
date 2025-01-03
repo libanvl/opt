@@ -268,4 +268,78 @@ public class OptTests
         var opt2 = Opt<int>.None;
         Assert.Equal(opt1.GetHashCode(), opt2.GetHashCode());
     }
+
+    [Fact]
+    public void Select_ReturnsTransformedOption_WhenSome()
+    {
+        var opt = Opt.Some(5);
+        var result = opt.Select(x => x * 2);
+        Assert.True(result.IsSome);
+        Assert.Equal(10, result.Unwrap());
+    }
+
+    [Fact]
+    public void Select_ReturnsNone_WhenTransformedValueIsNull()
+    {
+        var opt = Opt.Some("Hello");
+        var result = opt.Select<string>(x => null);
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Select_ReturnsNone_WhenTransformedValueIsNullValueType()
+    {
+        Opt<int> opt = 5;
+        var result = opt.Select<int>(_ => null);
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Select_ReturnsNone_WhenNone()
+    {
+        var opt = Opt<int>.None;
+        var result = opt.Select(x => x * 2);
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Where_ReturnsSome_WhenPredicateIsTrue()
+    {
+        var opt = Opt.Some(5);
+        var result = opt.Where(x => x > 3);
+        Assert.True(result.IsSome);
+    }
+
+    [Fact]
+    public void Where_ReturnsNone_WhenPredicateIsFalse()
+    {
+        var opt = Opt.Some(5);
+        var result = opt.Where(x => x < 3);
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Where_ReturnsNone_WhenOptionIsNone()
+    {
+        var opt = Opt<int>.None;
+        var result = opt.Where(x => x > 3);
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Cast_ReturnsSome_WhenCastIsValid()
+    {
+        var opt = Opt.Some((object)5);
+        var result = opt.Cast<int>();
+        Assert.True(result.IsSome);
+        Assert.Equal(5, result.Unwrap());
+    }
+
+    [Fact]
+    public void Cast_ReturnsNone_WhenCastIsInvalid()
+    {
+        var opt = Opt.Some((object)"string");
+        var result = opt.Cast<int>();
+        Assert.True(result.IsNone);
+    }
 }

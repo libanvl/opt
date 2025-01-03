@@ -34,6 +34,14 @@ public static class Opt
     public static Opt<T> From<T>(T? value) where T : notnull => value is null ? Opt<T>.None : Some(value);
 
     /// <summary>
+    /// Creates an <see cref="Opt{T}"/> from a nullable value.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="value">The nullable value to wrap.</param>
+    /// <returns>An <see cref="Opt{T}"/> containing the value if not null, otherwise <see cref="Opt{T}.None"/>.</returns>
+    public static Opt<T> From<T>(T? value) where T : struct => value.HasValue ? Some(value.Value) : Opt<T>.None;
+
+    /// <summary>
     /// Combines two options into an option containing a tuple of their values if both are present.
     /// </summary>
     /// <typeparam name="T">The type of the first value.</typeparam>
@@ -41,7 +49,7 @@ public static class Opt
     /// <param name="opt1">The first option.</param>
     /// <param name="opt2">The second option.</param>
     /// <returns>An option containing a tuple of the values if both are present, otherwise none.</returns>
-    public static Opt<(T, U)> Zip<T, U>(Opt<T> opt1, Opt<U> opt2)
+    public static Opt<(T, U)> Zip<T, U>(this Opt<T> opt1, Opt<U> opt2)
         where T : notnull
         where U : notnull
     {
@@ -55,7 +63,7 @@ public static class Opt
     /// </summary>
     /// <param name="opt">The option to flatten.</param>
     /// <returns>The flattened option.</returns>
-    public static Opt<T> Flatten<T>(Opt<Opt<T>> opt)
+    public static Opt<T> Flatten<T>(this Opt<Opt<T>> opt)
         where T : notnull => opt.IsSome ? opt.Unwrap() : Opt<T>.None;
 
     /// <summary>
@@ -102,7 +110,7 @@ public readonly struct Opt<T> : IEquatable<Opt<T>>, IComparable<Opt<T>> where T 
     /// </summary>
     /// <param name="value">The value to wrap.</param>
     /// <exception cref="OptException">Thrown if the value is null.</exception>
-    public Opt(T value)
+    internal Opt(T value)
     {
         OptException.ThrowIfNull(value);
         _value = value;
@@ -248,9 +256,28 @@ public readonly struct Opt<T> : IEquatable<Opt<T>>, IComparable<Opt<T>> where T 
     /// <typeparam name="U">The type of the result.</typeparam>
     /// <param name="fn">The function to transform the value.</param>
     /// <returns>An <see cref="Opt{U}"/> containing the transformed value or none.</returns>
-    public Opt<U> Select<U>(Func<T, U> fn) where U : notnull => IsSome
-        ? new(fn(OptException.ThrowInternalErrorIfNull(_value)))
+    public Opt<U> Select<U>(Func<T, U?> fn) where U : notnull => IsSome
+        ? Opt.From(fn(OptException.ThrowInternalErrorIfNull(_value)))
         : Opt<U>.None;
+
+    /// <summary>
+    /// Transforms the value if present using the specified function.
+    /// </summary>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="fn">The function to transform the value.</param>
+    /// <returns>An <see cref="Opt{U}"/> containing the transformed value or none.</returns>
+    public Opt<U> Select<U>(Func<T, U?> fn) where U: struct => IsSome
+        ? Opt.From(fn(OptException.ThrowInternalErrorIfNull(_value)))
+        : Opt<U>.None;
+
+    /// <summary>
+    /// Filters the option based on a predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate to apply.</param>
+    /// <returns>The option if the predicate is true, otherwise none.</returns>
+    public Opt<T> Where(Func<T, bool> predicate) => IsSome && predicate(OptException.ThrowInternalErrorIfNull(_value))
+        ? this
+        : None;
 
     /// <summary>
     /// Casts the value to the specified type if present.
