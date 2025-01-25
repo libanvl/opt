@@ -4,11 +4,11 @@
   <Import Project="../Directory.Packages.props" />
 
   <ItemGroup>
+    <GlobalPackageReference Include="coverlet.msbuild" Version="6.0.4" />
+    <GlobalPackageReference Include="JunitXml.TestLogger" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
-    <PackageVersion Include="JunitXml.TestLogger" Version="5.0.0" />
     <PackageVersion Include="xunit.v3" Version="1.0.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
