@@ -301,6 +301,8 @@ public class Examples
         Assert.Equal(6, sum);
     }
 
+#if NET8_0_OR_GREATER
+
     [Fact]
     public void MapOfAny()
     {
@@ -342,4 +344,5 @@ public class Examples
             x => Assert.Equal(2, x),
             x => Assert.Equal(3, x));
     }
+#endif
 }
