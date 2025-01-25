@@ -2,10 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net480</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>libanvl.opt.test</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <TestingPlatformDotnetTestSupport>false</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner>false</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,14 +17,10 @@
 
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="coverlet.msbuild" />
-    <PackageReference Include="JunitXml.TestLogger" />
-    <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="PolySharp" />
   </ItemGroup>
 
