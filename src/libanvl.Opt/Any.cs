@@ -6,7 +6,9 @@ namespace libanvl;
 /// <summary>
 /// Provides static methods to create instances of the <see cref="Any{T}"/> struct.
 /// </summary>
+#if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(Any), nameof(Create))]
+#endif
 public static class Any
 {
     /// <summary>
@@ -92,6 +94,7 @@ public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
             _single = Opt<T>.None;
             _many = Opt<List<T>>.None;
         }
+#if NET8_0_OR_GREATER
         else if (many.TryGetNonEnumeratedCount(out var count))
         {
             switch (count)
@@ -110,6 +113,7 @@ public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
                     break;
             }
         }
+#endif
         else
         {
             _single = Opt<T>.None;
@@ -127,9 +131,10 @@ public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
     /// <param name="many">The list of elements.</param>
     public Any(List<T> many)
     {
-        ArgumentNullException.ThrowIfNull(many);
+        if (many is null)
+            throw new ArgumentNullException(nameof(many));
 
-        switch (many.Count)
+        switch (many?.Count)
         {
             case 0:
                 _single = Opt<T>.None;
@@ -402,7 +407,11 @@ public struct Any<T> : IEquatable<Any<T>>, IEnumerable<T>
 
         if (IsSingle && other.IsSingle)
         {
+#if NET8_0_OR_GREATER
             return EqualityComparer<T>.Default.Equals(_single, other._single);
+#else
+            return EqualityComparer<T>.Default.Equals(_single.Unwrap(), other._single.Unwrap());
+#endif
         }
 
         if (IsMany && other.IsMany)

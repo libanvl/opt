@@ -2,6 +2,8 @@
 
 namespace libanvl;
 
+#if NET8_0_OR_GREATER
+
 /// <summary>
 /// Represents a map that provides references to values associated with keys.
 /// </summary>
@@ -105,3 +107,5 @@ public interface IAnyRefMap<K, V>
         }
     }
 }
+
+#endif

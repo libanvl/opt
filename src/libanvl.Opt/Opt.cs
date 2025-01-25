@@ -385,7 +385,7 @@ public readonly struct Opt<T> : IEquatable<Opt<T>>, IComparable<Opt<T>> where T 
     public bool Equals(Opt<T> other) => Equals(other, EqualityComparer<T>.Default);
 
     /// <inheritdoc/>
-    public bool Equals(Opt<T> other, IEqualityComparer<T> comparer) => IsSome == other.IsSome && comparer.Equals(_value, other._value);
+    public bool Equals(Opt<T> other, IEqualityComparer<T> comparer) => IsSome == other.IsSome && comparer.Equals(_value!, other._value!);
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is Opt<T> other && Equals(other);
@@ -393,7 +393,11 @@ public readonly struct Opt<T> : IEquatable<Opt<T>>, IComparable<Opt<T>> where T 
     /// <inheritdoc/>
     public override int GetHashCode()
     {
+#if NET8_0_OR_GREATER
         return HashCode.Combine(_value, IsSome);
+#else
+        return (_value, IsSome).GetHashCode();
+#endif
     }
 
     /// <inheritdoc/>

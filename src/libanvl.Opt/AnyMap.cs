@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace libanvl;
 
+#if NET8_0_OR_GREATER
+
 /// <summary>
 /// Represents a dictionary-like collection that maps keys to values of type <see cref="Any{V}"/>.
 /// </summary>
@@ -56,3 +58,5 @@ public class AnyMap<K, V> : Dictionary<K, Any<V>>, IAnyRefMap<K, V>
         return new IAnyRefMap<K, V>.RefEnumerator(this);
     }
 }
+
+#endif

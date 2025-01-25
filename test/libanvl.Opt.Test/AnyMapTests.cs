@@ -3,6 +3,8 @@ using Xunit;
 
 namespace libanvl.opt.test;
 
+#if NET8_0_OR_GREATER
+
 public class AnyMapTests
 {
     [Fact]
@@ -118,3 +120,5 @@ public class AnyMapTests
         Assert.True(Unsafe.IsNullRef(ref value));
     }
 }
+
+#endif
