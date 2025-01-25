@@ -1,8 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' and '$(RUNNER_OS)' != 'Windows' ">
+      <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' or '$(RUNNER_OS)' == 'Windows' "> 
+      <TargetFrameworks>net8.0;net480</TargetFrameworks>
+  </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks Condition=" 'RUNNER_OS' == 'Windows' or 'RUNNER_OS' == ''">net8.0;net480</TargetFrameworks>
-    <TargetFrameworks Condition=" 'RUNNER_OS' != 'Windows' and 'RUNNER_OS' != ''">net8.0;net480</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
