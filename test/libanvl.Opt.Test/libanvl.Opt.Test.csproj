@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>libanvl.opt.test</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <TestingPlatformDotnetTestSupport>false</TestingPlatformDotnetTestSupport>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>false</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
